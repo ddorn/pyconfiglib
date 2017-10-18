@@ -42,13 +42,14 @@ To use the configlib in your project, just create a file name `conf.py` awith th
 
 Made with love by ddorn (https://github.com/ddorn/)
 """
-
+import inspect
 import json
+import os
 
 import click
 
-from prompting import prompt_file
 import conftypes
+from prompting import prompt_file
 
 try:
     import pygments
@@ -60,152 +61,15 @@ except ImportError:
     TerminalFormatter = None  # type: type
 
 
+# ✓
 def is_config_field(attr: str):
-    """Every string which doesn't start and end with '--' is considered to be a valid configuration field."""
+    """Every string which doesn't start and end with '__' is considered to be a valid usable configuration field."""
     return not (attr.startswith('__') and attr.endswith('__'))
 
 
-def represent_path(field: str):
-    """A path field starts or and its name with path and an underscore"""
-    return field.lower().startswith('path_') or field.lower().endswith('_path')
-
-
-def get_field_type(config: 'Config', field: str):
-    """Get the type given by __field_type__ or str if not defined."""
-    return getattr(config, '__{field}_type__'.format(field=field), conftypes.ConfigType())
-
-
-
-def get_field_hint(config, field):
-    """Get the hint given by __field_hint__ or the field name if not defined."""
-    return getattr(config, '__{field}_hint__'.format(field=field), field)
-
-
-def warn_for_field_type(config, field):
-    click.echo('The field ', nl=False)
-    click.secho(field, nl=False, fg='yellow')
-    click.echo(' is a ', nl=False)
-    click.secho(type(config[field]).__name__, nl=False, fg='red')
-    click.echo(' but should be ', nl=False)
-    click.secho(get_field_type(config, field).__name__, nl=False, fg='green')
-    click.echo('.')
-
-
-class Config(object):
-
-    __config_path__ = 'config.json'
-
-    def __init__(self, raise_on_fail=True):
-        self.__load__(raise_on_fail)
-
-    def __init_subclass__(cls, **kwargs):
-        # we want to set the type for the implicit ones
-        for field in list(cls.__dict__):
-            if not is_config_field(field):
-                continue
-
-            field_type_name = '__{field}_type__'.format(field=field)
-            if not hasattr(cls, field_type_name):
-                setattr(cls, field_type_name, type(getattr(cls, field)))
-
-    def __iter__(self):
-        """Iterate over the fields"""
-        keys = sorted(type(self).__dict__)
-        for key in keys:
-            if is_config_field(key):
-                yield key
-
-    def __load__(self, raise_on_fail=True):
-        try:
-            with open(self.__config_path__) as f:
-                file = f.read()
-
-        except FileNotFoundError:
-            file = '{}'
-
-        conf = json.loads(file)  # type: dict
-
-        # we update only the fields in the conf #NoPolution
-        for field in self:
-            # so we set the field to the field if there is one in the conf (.get)
-            new_value = conf.get(field, getattr(self, field))
-            supposed_type = get_field_type(self, field)
-            if isinstance(supposed_type, conftypes.ConfigType):
-                if conftypes.is_valid(new_value, supposed_type):
-                    pass
-                else:
-                    new_value = supposed_type.load(new_value)
-            if not conftypes.is_valid(new_value, supposed_type):
-                import inspect
-                click.echo("The field {} is a {} but should be {}. ".format(field, type(new_value).__name__,
-                                                                                     supposed_type.__name__), nl=False)
-                click.echo("You can run `python {}` to update the configuration".format(inspect.getfile(self.__class__)))
-                if raise_on_fail:
-                    raise TypeError
-
-            setattr(self, field, new_value)
-
-    def __save__(self):
-
-        attr_dict = {}
-        for attr in self:
-            if is_config_field(attr):
-                supposed_type = get_field_type(self, attr)
-                if isinstance(supposed_type, conftypes.ConfigType):
-                    attr_dict[attr] = supposed_type.save(self[attr])
-                else:
-                    attr_dict[attr] = self[attr]
-
-        jsonstr = json.dumps(attr_dict, indent=4, sort_keys=True)
-        with open(self.__config_path__, 'w') as f:
-            f.write(jsonstr)
-
-    def __len__(self):
-        # we can't do len(list(self)) because list uses len when it can, causing recurtion of the death
-        return sum(1 for _ in self)
-
-    def __setitem__(self, key, value):
-        self.__setattr__(key, value)
-
-    def __getitem__(self, item):
-        return self.__getattribute__(item)
-
-    def __print_list__(self):
-        click.echo("The following fields are available: ")
-        for i, field in enumerate(list(self)):
-            click.echo(" - {:-3} ".format(i + 1), nl=0)
-            click.echo(field + ' (', nl=0)
-            click.secho(get_field_type(self, field).__name__, fg='yellow', nl=0)
-            click.echo(')')
-        click.echo()
-
-    def __show__(self):
-        try:
-            with open(self.__config_path__, 'r') as f:
-                file = f.read()
-        except FileNotFoundError:
-            click.echo("You don't have any configuration.")
-            return
-
-        file = json.dumps(json.loads(file), indent=4, sort_keys=True)
-
-        if isinstance(pygments, str):
-            click.secho(pygments, fg='yellow')
-        else:
-            file = pygments.highlight(file, JsonLexer(), TerminalFormatter())
-
-        click.echo()
-        click.echo(file)
-
-    def __update__(self, dct):
-        for field, value in dct.items():
-            supposed_type = get_field_type(self, field)
-            if conftypes.is_valid(value, supposed_type):
-                self[field] = value
-            else:
-                warn_for_field_type(self, field)
-
-def prompt_update_all(config):
+# ✓
+def prompt_update_all(config: 'Config'):
+    """Prompt each field of the configration to the user."""
 
     click.echo()
     click.echo('Welcome !')
@@ -213,30 +77,268 @@ def prompt_update_all(config):
     click.echo('Press Ctrl+C at any time to quit and save')
     click.echo()
 
-    for i, field in enumerate(list(config)):
+    for field in config:
 
-        type_ = getattr(config, '__' + field + '_type__', type(config[field]))
-        hint = getattr(config, '__' + field + '_hint__', field) + ' ({})'.format(type_.__name__)
+        type_ = config.__type__(field)
+        hint = config.__hint__(field) + ' ({})'.format(type_.__name__)
 
-        if represent_path(field) or type_ is conftypes.path:
+        # we prompt the paths through prompt_file and not click
+        if type_ is conftypes.path:
             config[field] = prompt_file(hint, default=config[field])
+            continue
+
+        if isinstance(type_, conftypes.ConfigType):
+            # config[field] is always real data, but we want to show something that is the closest
+            # possible to what the user needs to enter
+            # thus, we show what we would store in the json
+            default = type_.save(config[field])
         else:
-            # ask untill we have the right type
-            while True:
-                value = click.prompt(hint, default=config[field], type=type_)
+            default = config[field]
 
-                supposed_type = get_field_type(config, field)
-                if conftypes.is_valid(value, supposed_type):
-                    config[field] = value
-                    break
+        # ask untill we have the right type
+        value = click.prompt(hint, default=default, type=type_, )
 
-                warn_for_field_type(config, field)
+        # click doesnt convert() the default if nothing is entered, so it wont be valid
+        # however we don't care because default means that we don't have to update
+        if value == default:
+            continue
+
+        try:
+            config[field] = value
+        except ValueError:
+            print(field, ':', value, type(value), type_)
+            raise RuntimeError("The program shouldn't go there.")
+            # Normally the type must be the right one because either click converted it
+            # or one of the ConfigType.
+
+
+# ✓
+class Config(object):
+    # the path where the configuration is stored. The directory must exist
+    __config_path__ = 'config.json'
+
+    # ✓
+    def __init__(self, raise_on_fail=True):
+
+        # the raise_on_fail=True prevent any code to start if the config as bad data
+        # so the user can correct it, add nothing can be corrupted
+
+        try:
+            with open(self.__config_path__, 'r', encoding='utf-8') as f:
+                file = f.read()
+        except FileNotFoundError:
+            # if no config was ever created, it's type to make one
+            file = '{}'
+
+        conf = json.loads(file)  # type: dict
+
+        one_field_is_with_a_bad_type = False
+        # we update only the fields in the conf so if someone added fields in the json,
+        # they won't interfere with the already defines attributes...
+        # For instance, we don't want to override __load__.
+        for field in self:
+
+            # we keep the actual value if it is not in the config
+            new_value = conf.get(field, getattr(self, field))
+
+            try:
+                self[field] = new_value
+            except ValueError:
+                self.__warn__(new_value, field)
+                one_field_is_with_a_bad_type = True
+
+                if raise_on_fail:
+                    click.echo(
+                        "You can run `python {}` to update the configuration".format(inspect.getfile(self.__class__)))
+                    raise
+
+        if one_field_is_with_a_bad_type:
+            click.echo("You can run `python {}` to update the configuration".format(
+                os.path.relpath(inspect.getfile(self.__class__))))
+
+    # ✓
+    def __init_subclass__(cls, **kwargs):
+
+        # this is called every times a subclass of Config is made.
+        # Here we add all the missing types so the type of the default can not change
+        # when there is not __field_type__.
+
+        for field in list(cls.__dict__):
+            if not is_config_field(field):
+                continue
+
+            field_type_name = '__{field}_type__'.format(field=field)
+
+            # if this it is an implicit type
+            if not hasattr(cls, field_type_name):
+                # we add the type of the default
+                setattr(cls, field_type_name, type(getattr(cls, field)))
+
+    # ✓
+    def __iter__(self):
+        """Iterate over the fields, sorted."""
+
+        # the fields are all class atributes,
+        # so they are accessible from everywhere
+        keys = sorted(type(self).__dict__)
+        for key in keys:
+            if is_config_field(key):
+                yield key
+
+    # ✓
+    def __save__(self):
+        """Save the config to __config_path__ in a json format."""
+
+        json_dict = {}
+        for attr in self:
+            # we want to save only the fields
+            if is_config_field(attr):
+
+                supposed_type = self.__type__(attr)
+                # but we may need to convert the to something json knows
+                # if the type is a custom type
+                if isinstance(supposed_type, conftypes.ConfigType):
+                    json_dict[attr] = supposed_type.save(self[attr])
+                else:
+                    json_dict[attr] = self[attr]
+
+        jsonstr = json.dumps(json_dict, indent=4, sort_keys=True)
+        with open(self.__config_path__, 'w', encoding='utf-8') as f:
+            f.write(jsonstr)
+
+    # ✓
+    def __len__(self):
+        # we can't do len(list(self)) because list uses len when it can, causing recurtion of the death
+        return sum(1 for _ in self)
+
+    # ✓
+    def __setitem__(self, field, value):
+        """
+        Sets a field to a given value if it is a correct type.
+
+        :param field: needs to be an existing field
+        :raise ValueError: when the value is not valid.
+        """
+
+        supposed_type = self.__type__(field)
+
+        if conftypes.is_valid(value, supposed_type):
+            # everything is correct, we assign ist directly
+            self.__setattr__(field, value)
+
+        elif isinstance(supposed_type, conftypes.ConfigType):
+            # we may need to convert it
+            try:
+                value = supposed_type.load(value)
+                self.__setattr__(field, value)
+            except Exception:
+                raise ValueError('fail loading %s of type %s but supposed %s' % (value, type(value), supposed_type))
+        else:
+            # it is just not good
+            raise ValueError('fail loading %s of type %s but supposed %s' % (value, type(value), supposed_type))
+
+    # ✓
+    def __getitem__(self, item):
+        # proxy to getattribute to have be symetrical to __setitem__
+        return self.__getattribute__(item)
+
+    # ✓
+    def __enter__(self):
+        """The context manager patern ensures that the config will be saved."""
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.__save__()
+        click.echo('\nSaved!')
+
+
+    # ✓
+    def __print_list__(self):
+        """Print all the availaible fields with their order and type."""
+
+        click.echo("The following fields are available: ")
+        for i, field in enumerate(list(self)):
+            click.echo(" - {:-3} ".format(i + 1), nl=0)
+            click.echo(field + ' (', nl=0)
+            click.secho(self.__type__(field).__name__, fg='yellow', nl=0)
+            click.echo(')')
+        click.echo()
+
+    # ✓
+    def __show__(self):
+        """Print the json that stores the data with colors."""
+
+        try:
+            with open(self.__config_path__, 'r', encoding='utf-8') as f:
+                file = f.read()
+        except FileNotFoundError:
+            click.echo("You don't have any configuration.")
+            return
+
+        file = json.dumps(json.loads(file), indent=4, sort_keys=True)
+
+        # I've set pygments to an help str when there is an import error
+        if isinstance(pygments, str):
+            click.secho(pygments, fg='yellow')
+        else:
+            # add ansii coloring
+            file = pygments.highlight(file, JsonLexer(), TerminalFormatter())
+
+        click.echo()
+        click.echo(file)
+
+    # ✓
+    def __update__(self, dct):
+        """
+        Update all the fields with the key/values in the dict.
+
+        The dict must be composed only of fields.
+        When the type is wrong, a warning is printed and the field is not updated.
+        """
+
+        for field, value in dct.items():
+            try:
+                self[field] = value
+            except ValueError:
+                self.__warn__(value, field)
+
+    # ✓
+    def __warn__(self, value, field):
+        """Show a colored message to say that the field is not of the right type."""
+
+        click.echo('The field ', nl=False)
+        click.secho(field, nl=False, fg='yellow')
+        click.echo(' is a ', nl=False)
+        click.secho(type(value).__name__, nl=False, fg='red')
+        click.echo(' but should be ', nl=False)
+        click.secho(self.__type__(field).__name__, nl=False, fg='green')
+        click.echo('.')
+
+    # ✓
+    def __type__(self, field):
+        """Get the type given by __field_type__"""
+        return self['__{field}_type__'.format(field=field)]
+
+    # ✓
+    def __hint__(self, field):
+        """Get the hint given by __field_hint__ or the field name if not defined."""
+        return getattr(self, '__{field}_hint__'.format(field=field), field)
 
 
 def update_config(config: type(Config)):
+    """Command line function to update and the a config."""
+
+    # we build the real click command inside the function, because it needs to be done
+    # dynamically, depending on the config.
+
+    # we ignore the type errors, keeping the the defaults if needed
+    # everything will be updated anyway
     config = config(raise_on_fail=False)  # type: Config
 
     def print_list(ctx, param, value):
+        # they do like that in the doc (http://click.pocoo.org/6/options/#callbacks-and-eager-options)
+        # so I do the same... but I don't now why.
+        # the only goal is to call __print_list__()
         if not value or ctx.resilient_parsing:
             return param
 
@@ -245,6 +347,7 @@ def update_config(config: type(Config)):
         ctx.exit()
 
     def show_conf(ctx, param, value):
+        # see print_list
         if not value or ctx.resilient_parsing:
             return param
 
@@ -252,12 +355,13 @@ def update_config(config: type(Config)):
 
         ctx.exit()
 
-    # all option must be eager and start with only one dash, so it doesn't conflic with any possible field
+    # this is the real function for the CLI
+    # all options must be eager and start with only one dash, so it doesn't conflic with any possible field
     @click.command()
     @click.option('-l', '-list', is_eager=True, is_flag=True, expose_value=False, callback=print_list,
-                            help='List the availaible configuration fields.')
+                  help='List the availaible configuration fields.')
     @click.option('-s', '-show', is_eager=True, is_flag=True, expose_value=False, callback=show_conf,
-                            help='View the configuration.')
+                  help='View the configuration.')
     def command(**kwargs):
         """
         I manage your configuration.
@@ -267,24 +371,23 @@ def update_config(config: type(Config)):
         list the available field with -l and set them by --name-of-field=whatever.
         """
 
-        try:
-            # save directly what is passed if something was passed
+        # with a context manager, the config is always saved at the end
+        with config:
+            # the fields passed (not passed gives a value of None
+            # thus, we can not pass None but I don't see any use case
             kwargs = {field: value for (field, value) in kwargs.items() if value is not None}
 
             if kwargs:
+                # save directly what is passed if something was passed whitout the interactive prompt
                 config.__update__(kwargs)
             else:
                 # or update all
                 prompt_update_all(config)
-        except click.exceptions.Abort:
-            pass
-        finally:
-            config.__save__()
-            click.echo('\nSaved !')
 
-    # update the arguments with all fields
+    # update the click possible options with all the fields of the config
     for i, field in enumerate(list(config)):
-        command = click.option('--{}'.format(field), '-{}'.format(i + 1), type=get_field_type(config, field),
-                                         help=get_field_hint(config, field))(command)
+        command = click.option('--{}'.format(field), '-{}'.format(i + 1), type=config.__type__(field),
+                               help=config.__hint__(field))(command)
 
+    # finally run the command
     command()
