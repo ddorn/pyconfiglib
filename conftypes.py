@@ -9,7 +9,10 @@ def is_valid(instance, type_):
 
 class ConfigType(click.ParamType):
 
-    def convert(self, value, param, ctx):
+    def __repr__(self):
+        return '<ConfigType %s>' % self.name
+
+    def convert(self, value, param=None, ctx=None):
         try:
             return self.load(value)
         except (IndexError, ValueError):
