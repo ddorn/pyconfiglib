@@ -131,14 +131,14 @@ class Config(object):
             new_value = conf.get(field, getattr(self, field))
             supposed_type = get_field_type(self, field)
             if isinstance(supposed_type, conftypes.ConfigType):
-                if conftypes.isgood(new_value, supposed_type):
+                if conftypes.is_valid(new_value, supposed_type):
                     pass
                 else:
                     new_value = supposed_type.load(new_value)
-            if not conftypes.isgood(new_value, supposed_type):
+            if not conftypes.is_valid(new_value, supposed_type):
                 import inspect
-                click.echo("The field {} is a {} but should be {}.".format(field, type(new_value).__name__,
-                                                                                     supposed_type.__name__), end=' ')
+                click.echo("The field {} is a {} but should be {}. ".format(field, type(new_value).__name__,
+                                                                                     supposed_type.__name__), nl=False)
                 click.echo("You can run `python {}` to update the configuration".format(inspect.getfile(self.__class__)))
                 if raise_on_fail:
                     raise TypeError
@@ -200,7 +200,7 @@ class Config(object):
     def __update__(self, dct):
         for field, value in dct.items():
             supposed_type = get_field_type(self, field)
-            if conftypes.isgood(value, supposed_type):
+            if conftypes.is_valid(value, supposed_type):
                 self[field] = value
             else:
                 warn_for_field_type(self, field)
@@ -226,7 +226,7 @@ def prompt_update_all(config):
                 value = click.prompt(hint, default=config[field], type=type_)
 
                 supposed_type = get_field_type(config, field)
-                if conftypes.isgood(value, supposed_type):
+                if conftypes.is_valid(value, supposed_type):
                     config[field] = value
                     break
 

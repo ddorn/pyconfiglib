@@ -1,6 +1,7 @@
 import click
 
-def isgood(instance, type_):
+
+def is_valid(instance, type_):
     if isinstance(type_, ConfigType):
         return type_.is_valid(instance)
     return isinstance(instance, type_)
