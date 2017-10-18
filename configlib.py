@@ -134,7 +134,7 @@ class Config(object):
 
             field_type_name = '__{field}_type__'.format(field=field)
 
-            # if this it is an implicit type
+            # if it is an implicit type
             if not hasattr(cls, field_type_name):
                 # we add the type of the default
                 setattr(cls, field_type_name, type(getattr(cls, field)))
@@ -155,7 +155,7 @@ class Config(object):
             with open(self.__config_path__, 'r', encoding='utf-8') as f:
                 file = f.read()
         except FileNotFoundError:
-            # if no config was ever created, it's type to make one
+            # if no config was ever created, it's time to make one
             file = '{}'
 
         conf = json.loads(file)  # type: dict
@@ -206,7 +206,7 @@ class Config(object):
         supposed_type = self.__type__(field)
 
         if conftypes.is_valid(value, supposed_type):
-            # everything is correct, we assign ist directly
+            # everything is correct, we assign is directly
             self.__setattr__(field, value)
 
         elif isinstance(supposed_type, conftypes.ConfigType):
@@ -234,7 +234,6 @@ class Config(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.__save__()
         click.echo('\nSaved!')
-
 
     # ✓
     def __print_list__(self):
