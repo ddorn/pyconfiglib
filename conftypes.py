@@ -9,6 +9,8 @@ def is_valid(instance, type_):
 
 class ConfigType(click.ParamType):
 
+    name = 'any'
+
     def __repr__(self):
         return '<ConfigType %s>' % self.name
 
