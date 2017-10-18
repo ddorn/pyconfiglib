@@ -39,10 +39,13 @@ class _ColorType(ConfigType):
     name = 'color'
 
     def load(self, value):
-        if len(value) != 4 or value[0] != '#':
+        if len(value) not in (4, 7) or value[0] != '#':
             raise ValueError
 
-        return [16*int(c, 16) for c in value[1:]]
+        size = len(value) // 3
+        factor = 1 if size == 2 else 16
+        r, g, b = [value[1 + size*i: 1 + size*(i+1)] for i in range(3)]
+        return [int(c, 16) * factor for c in (r, g, b)]
 
     def is_valid(self, value):
         return isinstance(value, (tuple, list)) and \
@@ -52,9 +55,9 @@ class _ColorType(ConfigType):
                    for c in value)
 
     def save(self, value):
-        return '#{}{}{}'.format(hex(value[0]//16)[2:],
-                                hex(value[1]//16)[2:],
-                                hex(value[2]//16)[2:])
+        return '#{}{}{}'.format(hex(value[0])[2:],
+                                hex(value[1])[2:],
+                                hex(value[2])[2:])
 
 
 class _PathType(ConfigType):
