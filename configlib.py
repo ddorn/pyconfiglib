@@ -118,43 +118,8 @@ class Config(object):
     __config_path__ = 'config.json'
 
     # ✓
-    def __init__(self, raise_on_fail=True):
-
-        # the raise_on_fail=True prevent any code to start if the config as bad data
-        # so the user can correct it, add nothing can be corrupted
-
-        try:
-            with open(self.__config_path__, 'r', encoding='utf-8') as f:
-                file = f.read()
-        except FileNotFoundError:
-            # if no config was ever created, it's type to make one
-            file = '{}'
-
-        conf = json.loads(file)  # type: dict
-
-        one_field_is_with_a_bad_type = False
-        # we update only the fields in the conf so if someone added fields in the json,
-        # they won't interfere with the already defines attributes...
-        # For instance, we don't want to override __load__.
-        for field in self:
-
-            # we keep the actual value if it is not in the config
-            new_value = conf.get(field, getattr(self, field))
-
-            try:
-                self[field] = new_value
-            except ValueError:
-                self.__warn__(new_value, field)
-                one_field_is_with_a_bad_type = True
-
-                if raise_on_fail:
-                    click.echo(
-                        "You can run `python {}` to update the configuration".format(inspect.getfile(self.__class__)))
-                    raise
-
-        if one_field_is_with_a_bad_type:
-            click.echo("You can run `python {}` to update the configuration".format(
-                os.path.relpath(inspect.getfile(self.__class__))))
+    def __init__(self):
+        self.__load__()
 
     # ✓
     def __init_subclass__(cls, **kwargs):
@@ -184,6 +149,24 @@ class Config(object):
         for key in keys:
             if is_config_field(key):
                 yield key
+
+    def __load__(self, **dct):
+        try:
+            with open(self.__config_path__, 'r', encoding='utf-8') as f:
+                file = f.read()
+        except FileNotFoundError:
+            # if no config was ever created, it's type to make one
+            file = '{}'
+
+        conf = json.loads(file)  # type: dict
+
+        # we update only the fields in the conf so if someone added fields in the json,
+        # they won't interfere with the already defines attributes...
+        # For instance, we don't want to override __load__.
+
+        # we keep the actual value if it is not in the config
+        dct = {field: conf.get(field, self[field]) for field in self}
+        self.__update__(dct)
 
     # ✓
     def __save__(self):
@@ -247,6 +230,7 @@ class Config(object):
         """The context manager patern ensures that the config will be saved."""
         return self
 
+    # ✓
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.__save__()
         click.echo('\nSaved!')
@@ -294,13 +278,24 @@ class Config(object):
 
         The dict must be composed only of fields.
         When the type is wrong, a warning is printed and the field is not updated.
+
+        Return the succes of settin ALL fields of the dict.
         """
+
+        one_field_is_with_a_bad_type = False
 
         for field, value in dct.items():
             try:
                 self[field] = value
             except ValueError:
+                one_field_is_with_a_bad_type = True
                 self.__warn__(value, field)
+
+        if one_field_is_with_a_bad_type:
+            click.echo("You can run `python {}` to update the configuration".format(
+                os.path.relpath(inspect.getfile(self.__class__))))
+
+        return one_field_is_with_a_bad_type
 
     # ✓
     def __warn__(self, value, field):
@@ -333,7 +328,7 @@ def update_config(config: type(Config)):
 
     # we ignore the type errors, keeping the the defaults if needed
     # everything will be updated anyway
-    config = config(raise_on_fail=False)  # type: Config
+    config = config()  # type: Config
 
     def print_list(ctx, param, value):
         # they do like that in the doc (http://click.pocoo.org/6/options/#callbacks-and-eager-options)
