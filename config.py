@@ -6,7 +6,7 @@ import conftypes
 class Config(configlib.Config):
     __config_path__ = 'config.json'
 
-    orange = '#F82'
+    orange = (255, 127, 31)
     __orange_type__ = conftypes.color
     __orange_hint__ = "The most beautiful orange"
 
