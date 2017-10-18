@@ -37,6 +37,6 @@ There are a few requirements that you can download with pip:
 
     pip install click pygments
     
-For windows users, you will need pyreadline because readline isn;t in the stdlib.
+For windows users, you will need pyreadline because readline isn't in the stdlib.
 
     pip install pyreadline
