@@ -46,6 +46,7 @@ Made with love by ddorn (https://github.com/ddorn/)
 import inspect
 import json
 import os
+from typing import Tuple
 
 import click
 
@@ -393,14 +394,15 @@ def update_config(config: type(Config)):
 
     # this is the real function for the CLI
     # all options must be eager and start with only one dash, so it doesn't conflic with any possible field
-    @click.command()
+    @click.command(context_settings={'ignore_unknown_options': True})
     @click.option('-l', '-list', is_eager=True, is_flag=True, expose_value=False, callback=print_list,
                   help='List the availaible configuration fields.')
     @click.option('-s', '-show', is_eager=True, is_flag=True, expose_value=False, callback=show_conf,
                   help='View the configuration.')
     @click.option('-c', '-clean', is_eager=True, is_flag=True, expose_value=False, callback=clean,
                   help='Clean the file where the configutation is stored.')
-    def command(**kwargs):
+    @click.argument('fields-to-set', nargs=-1, type=click.UNPROCESSED)
+    def command(fields_to_set: 'Tuple[str]'):
         """
         I manage your configuration.
 
@@ -411,21 +413,18 @@ def update_config(config: type(Config)):
 
         # with a context manager, the config is always saved at the end
         with config:
-            # the fields passed (not passed gives a value of None
-            # thus, we can not pass None but I don't see any use case
-            kwargs = {field: value for (field, value) in kwargs.items() if value is not None}
 
-            if kwargs:
+            dct = {}
+            for field in fields_to_set:
+                field, _, value = field.partition('=')
+                dct[field] = value
+
+            if dct:
                 # save directly what is passed if something was passed whitout the interactive prompt
-                config.__update__(kwargs)
+                config.__update__(dct)
             else:
                 # or update all
                 prompt_update_all(config)
-
-    # update the click possible options with all the fields of the config
-    for i, field in enumerate(list(config)):
-        command = click.option('--{}'.format(field), '-{}'.format(i + 1), type=config.__type__(field),
-                               help=config.__hint__(field))(command)
 
     # finally run the command
     command()
