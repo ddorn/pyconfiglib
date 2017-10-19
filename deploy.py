@@ -25,6 +25,10 @@ def main(type, message):
     version = get_version()
     last_version = version = list(map(int, version.split('.')))
 
+    def revert_version():
+        save_version(*last_version)
+        click.secho('Version reverted to %s' % get_version(), fg='yellow')
+
     importance = TYPES.index(type)
     # we increase major/minor/path as chosen
     version[importance] += 1
@@ -35,19 +39,19 @@ def main(type, message):
     # save the version
     save_version(*version)
 
+    # uninstall the previous version because the test imports it :/
+    run('pip uninstall pyconfiglib --yes')
+
     # make sure it passes the tests
-    run('pip uninstall pyconfiglib')
     if run('pytest') != 0:
         click.secho("The test doesn't pass.", fg='red')
-        save_version(*last_version)
-        click.secho('Version reverted to %s' % get_version(), fg='yellow')
+        revert_version()
         return
 
     # make sur I can install it
     if run('py setup.py install --user clean --all') != 0:
         click.secho('Failed to install the updated library.', fg='red')
-        save_version(*last_version)
-        click.secho('Version reverted to %s' % get_version(), fg='yellow')
+        revert_version()
         return
 
     version = get_version()
