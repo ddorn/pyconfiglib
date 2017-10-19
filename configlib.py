@@ -91,6 +91,9 @@ def prompt_update_all(config: 'Config'):
         type_ = config.__type__(field)
         hint = config.__hint__(field) + ' ({})'.format(type_.__name__)
 
+        if isinstance(type_, conftypes.SubConfigType):
+            continue
+
         # we prompt the paths through prompt_file and not click
         if type_ is conftypes.path:
             config[field] = prompt_file(hint, default=config[field])
