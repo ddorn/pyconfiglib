@@ -1,8 +1,10 @@
 from setuptools import setup
+from deploy import get_version
+
 
 setup(
     name='configlib',
-    version='1.0.0',
+    version=get_version(),
     packages=['configlib'],
     url='https://github.com/ddorn/configlib',
     license='MIT',
