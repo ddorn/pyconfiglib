@@ -37,7 +37,7 @@ class Colors(configlib.SubConfig):
     __castle_hint__ = 'The colors of the walls of your castle'
 
 class Config(configlib.Config):
-    __config_path__ = 'config.json'
+    __config_path__ = 'assets/config.json'
 
     age = 3
 
