@@ -13,13 +13,15 @@ def save_version(major, minor, patch):
         f.write('%d.%d.%d' % (major, minor, patch))
 
 def run(cmd):
-    print(cmd)
+    click.secho(cmd, fg='yellow')
     os.system(cmd)
 
 @click.command()
 @click.argument('type', type=click.Choice(TYPES))
 @click.argument('message', nargs=-1)
 def main(type, message):
+    """Deploy a project easily and change the version number at the same time."""
+
     version = get_version()
     version = list(map(int, version.split('.')))
     importance = TYPES.index(type)
@@ -31,7 +33,6 @@ def main(type, message):
 
     save_version(*version)
     version = get_version()
-    print('Version changed to', version)
 
     message = message and ' '.join(message) or 'Release of version %s' % version
 
@@ -40,6 +41,8 @@ def main(type, message):
     run('git tag v{version} -a -m "{message}"'.format(version=version,
                                                       message=message))
     run('git push origin --tags')
+
+    click.secho('Version changed to ' + version, fg='green')
 
 if __name__ == '__main__':
     main()
