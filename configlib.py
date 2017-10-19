@@ -370,6 +370,15 @@ def update_config(config: type(Config)):
 
         ctx.exit()
 
+    def clean(ctx, param, value):
+        # see print_list
+        if not value or ctx.resilient_parsing:
+            return param
+
+        config.__save__()
+
+        ctx.exit()
+
     # this is the real function for the CLI
     # all options must be eager and start with only one dash, so it doesn't conflic with any possible field
     @click.command()
@@ -377,6 +386,8 @@ def update_config(config: type(Config)):
                   help='List the availaible configuration fields.')
     @click.option('-s', '-show', is_eager=True, is_flag=True, expose_value=False, callback=show_conf,
                   help='View the configuration.')
+    @click.option('-c', '-clean', is_eager=True, is_flag=True, expose_value=False, callback=clean,
+                  help='Clean the file where the configutation is stored.')
     def command(**kwargs):
         """
         I manage your configuration.
