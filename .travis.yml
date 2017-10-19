@@ -1,3 +1,7 @@
+language: python
+python:
+  - "3.5"
+  - "3.6"
 deploy:
   provider: pypi
   server: https://test.pypi.org/legacy/
