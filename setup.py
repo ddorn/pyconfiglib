@@ -3,7 +3,7 @@ from deploy import get_version
 
 
 setup(
-    name='configlib',
+    name='pyconfiglib',
     version=get_version(),
     packages=['configlib'],
     url='https://github.com/ddorn/configlib',
