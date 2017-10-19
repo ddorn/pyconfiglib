@@ -53,6 +53,7 @@ import click
 
 from .log import setup_logging
 from .prompting import prompt_file
+from . import conftypes
 
 setup_logging(35)
 logging.info('START')

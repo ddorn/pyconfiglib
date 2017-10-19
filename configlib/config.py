@@ -3,6 +3,7 @@
 import configlib
 from configlib import conftypes
 
+
 class WallColors(configlib.SubConfig):
 
     east = (255, 0, 0)
