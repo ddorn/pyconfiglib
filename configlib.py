@@ -61,6 +61,13 @@ except ImportError:
     JsonLexer = None  # type: type
     TerminalFormatter = None  # type: type
 
+TYPE_TO_CLICK_TYPE = {
+    int: click.INT,
+    float: click.FLOAT,
+    str: click.STRING,
+    bool: click.BOOL
+}
+
 
 # ✓
 def is_config_field(attr: str):
@@ -222,6 +229,12 @@ class Config(object):
                 self.__setattr__(field, value)
             except Exception:
                 raise ValueError('fail loading %s of type %s but supposed %s' % (value, type(value), supposed_type))
+        elif supposed_type in TYPE_TO_CLICK_TYPE:
+            try:
+                value = TYPE_TO_CLICK_TYPE[supposed_type](value)
+                self.__setattr__(field, value)
+            except Exception:
+                raise ValueError('fail loading %s of type %s but supposed %s' % (value, type(value), supposed_type))
         else:
             # it is just not good
             raise ValueError('fail loading %s of type %s but supposed %s' % (value, type(value), supposed_type))
@@ -332,7 +345,6 @@ class Config(object):
 
 
 class SubConfig(Config):
-
     # noinspection PyMissingConstructor
     def __init__(self, dct=None):
         dct = dct or {}
