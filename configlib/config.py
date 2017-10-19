@@ -2,7 +2,6 @@
 
 import configlib
 from configlib import conftypes
-from . import __init__ as configlib
 
 class WallColors(configlib.SubConfig):
 
