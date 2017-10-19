@@ -1,6 +1,12 @@
 from setuptools import setup
-from deploy import get_version
 
+from configlib.__deploy import get_version
+
+try:
+    with open('readme.rst') as f:
+        long_description = f.read()
+except:
+    long_description = 'Configuration for python made easy'
 
 setup(
     name='pyconfiglib',
@@ -11,5 +17,9 @@ setup(
     author='Diego Dorn',
     author_email='diego.dorn@free.fr',
     description='Configuration for python made easy',
-    install_requires=['click==6.*', 'pygments>=2.2']
+    long_description=long_description,
+    install_requires=['click==6.*', 'pygments>=2.2'],
+    package_data={
+        'configlib': ['version']
+    }
 )

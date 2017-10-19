@@ -3,13 +3,14 @@ import os
 import click
 
 TYPES = ['major', 'minor', 'patch']
+VERSION_FILE = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'version')
 
 def get_version():
-    with open('version') as f:
+    with open(VERSION_FILE) as f:
         return f.read()
 
 def save_version(major, minor, patch):
-    with open('version', 'w') as f:
+    with open(VERSION_FILE, 'w') as f:
         f.write('%d.%d.%d' % (major, minor, patch))
 
 def run(cmd):
