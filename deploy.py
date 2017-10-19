@@ -1,21 +1,15 @@
 import os
 
 import click
+from setup import get_version, save_version
 
 TYPES = ['major', 'minor', 'patch']
-VERSION_FILE = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'version')
 
-def get_version():
-    with open(VERSION_FILE) as f:
-        return f.read()
-
-def save_version(major, minor, patch):
-    with open(VERSION_FILE, 'w') as f:
-        f.write('%d.%d.%d' % (major, minor, patch))
 
 def run(cmd):
     click.secho(cmd, fg='yellow')
     os.system(cmd)
+
 
 @click.command()
 @click.argument('type', type=click.Choice(TYPES))
@@ -51,6 +45,7 @@ def main(type, message):
     run('git push origin --tags')
 
     click.secho('Version changed to ' + version, fg='green')
+
 
 if __name__ == '__main__':
     main()
