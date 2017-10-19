@@ -35,8 +35,11 @@ def main(type, message):
 
     message = message and ' '.join(message) or 'Release of version %s' % version
 
+    run('git commit -a -m "changing version number"'.format(message=message))
+    run('git push origin')
     run('git tag v{version} -a -m "{message}"'.format(version=version,
                                                       message=message))
     run('git push origin --tags')
+
 if __name__ == '__main__':
     main()
