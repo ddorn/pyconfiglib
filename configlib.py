@@ -256,16 +256,26 @@ class Config(object):
         click.echo('\nSaved!')
 
     # ✓
-    def __print_list__(self):
+    def __print_list__(self, prefix=''):
         """Print all the availaible fields with their order and type."""
 
-        click.echo("The following fields are available: ")
+        if not prefix:
+            click.echo("The following fields are available: ")
+
+        size = len(str(len(self)))
         for i, field in enumerate(list(self)):
-            click.echo(" - {:-3} ".format(i + 1), nl=0)
-            click.echo(field + ' (', nl=0)
+            click.echo(prefix + " - {:-{}} ".format(i + 1, size), nl=0)
+            click.echo(field, nl=0)
+
+            if isinstance(self[field], SubConfig):
+                click.echo(':')
+                self[field].__print_list__(prefix + ' ' * (size + 3))
+                continue
+
+            # we print the supposed type
+            click.echo(' (', nl=0)
             click.secho(self.__type__(field).__name__, fg='yellow', nl=0)
             click.echo(')')
-        click.echo()
 
     # ✓
     def __show__(self):
