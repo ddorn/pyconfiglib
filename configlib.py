@@ -170,6 +170,12 @@ class Config(object):
     def __save__(self):
         """Save the config to __config_path__ in a json format."""
 
+        jsonstr = json.dumps(self.__get_json_dict__(), indent=4, sort_keys=True)
+
+        with open(self.__config_path__, 'w', encoding='utf-8') as f:
+            f.write(jsonstr)
+
+    def __get_json_dict__(self):
         json_dict = {}
         for attr in self:
             # we want to save only the fields
@@ -183,9 +189,7 @@ class Config(object):
                 else:
                     json_dict[attr] = self[attr]
 
-        jsonstr = json.dumps(json_dict, indent=4, sort_keys=True)
-        with open(self.__config_path__, 'w', encoding='utf-8') as f:
-            f.write(jsonstr)
+        return json_dict
 
     # ✓
     def __len__(self):

@@ -1,6 +1,7 @@
 {
     "age": 42,
     "bald": true,
+    "colors": "{\n    \"back_ground\": \"#ffffff\",\n    \"text\": \"#408080\"\n}",
     "documents": "~/Documents",
     "name": "Archibald",
     "orange": "#f08030"
