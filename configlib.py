@@ -138,7 +138,11 @@ class Config(object):
             # if it is an implicit type
             if not hasattr(cls, field_type_name):
                 # we add the type of the default
-                setattr(cls, field_type_name, type(getattr(cls, field)))
+                default = getattr(cls, field)
+                if isinstance(default, SubConfig):
+                    setattr(cls, field_type_name, conftypes.SubConfigType(type(default)))
+                else:
+                    setattr(cls, field_type_name, type(default))
 
     # ✓
     def __iter__(self):
@@ -325,6 +329,15 @@ class Config(object):
     def __hint__(self, field):
         """Get the hint given by __field_hint__ or the field name if not defined."""
         return getattr(self, '__{field}_hint__'.format(field=field), field)
+
+
+class SubConfig(Config):
+
+    # noinspection PyMissingConstructor
+    def __init__(self, dct=None):
+        dct = dct or {}
+
+        self.__update__(dct)
 
 
 def update_config(config: type(Config)):

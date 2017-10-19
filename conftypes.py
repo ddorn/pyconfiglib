@@ -1,4 +1,11 @@
+import json
+
 import click
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import configlib
 
 
 def is_valid(instance, type_):
@@ -39,6 +46,31 @@ class ConfigType(click.ParamType):
     def __name__(self):
         return self.name
 
+
+class SubConfigType(ConfigType):
+    name = 'SubConfig'
+
+    def __init__(self, sub_config_class):
+        self.sub_config_class = sub_config_class  # type: type(configlib.SubConfig)
+
+    def load(self, value):
+
+        if isinstance(value, str):
+            try:
+                value = json.loads(value)
+            except json.JSONDecodeError:
+                raise ValueError('Not a valid json')
+
+        if isinstance(value, dict):
+            return self.sub_config_class(value)
+
+        raise ValueError
+
+    def save(self, value: 'configlib.SubConfig'):
+        return value.__get_json_dict__()
+
+    def is_valid(self, value):
+        return isinstance(value, self.sub_config_class)
 
 class _ColorType(ConfigType):
     name = 'color'
