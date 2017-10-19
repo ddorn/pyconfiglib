@@ -50,10 +50,10 @@ import os
 from typing import Tuple
 
 import click
-
-import conftypes
 import log
 from prompting import prompt_file
+
+from configlib import conftypes
 
 log.setup_logging(35)
 logging.info('START')

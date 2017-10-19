@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import configlib
-import conftypes
+from configlib import conftypes
 
 
 class WallColors(configlib.SubConfig):
