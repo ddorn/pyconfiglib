@@ -45,13 +45,18 @@ Made with love by ddorn (https://github.com/ddorn/)
 
 import inspect
 import json
+import logging
 import os
 from typing import Tuple
 
 import click
 
 import conftypes
+import log
 from prompting import prompt_file
+
+log.setup_logging(35)
+logging.info('START')
 
 try:
     import pygments
@@ -61,6 +66,7 @@ except ImportError:
     pygments = "You can install pygments with `pip install pygments` and have the output colored !"
     JsonLexer = None  # type: type
     TerminalFormatter = None  # type: type
+    logging.debug('Pygment not installed')
 
 TYPE_TO_CLICK_TYPE = {
     int: click.INT,
@@ -117,15 +123,10 @@ def prompt_update_all(config: 'Config'):
         # click doesnt convert() the default if nothing is entered, so it wont be valid
         # however we don't care because default means that we don't have to update
         if value == default:
+            logging.debug('same value and default, skipping set. %r == %r', value, default)
             continue
 
-        try:
-            config[field] = value
-        except ValueError:
-            print(field, ':', value, type(value), type_)
-            raise RuntimeError("The program shouldn't go there.")
-            # Normally the type must be the right one because either click converted it
-            # or one of the ConfigType.
+        config[field] = value
 
 
 # ✓
@@ -158,6 +159,7 @@ class Config(object):
                     setattr(cls, field_type_name, conftypes.SubConfigType(type(default)))
                 else:
                     setattr(cls, field_type_name, type(default))
+                    logging.debug('In %s the field %s has now type %s because the default is %r', cls, field, type(default), default)
 
     # ✓
     def __iter__(self):
@@ -184,9 +186,11 @@ class Config(object):
         try:
             with open(self.__config_path__, 'r', encoding='utf-8') as f:
                 file = f.read()
+            logging.info('Read %d chars from %s', len(file), self.__config_path__)
         except FileNotFoundError:
             # if no config was ever created, it's time to make one
             file = '{}'
+            logging.info('Config file not found, creating empty one')
 
         conf = json.loads(file)  # type: dict
 
@@ -198,6 +202,7 @@ class Config(object):
 
         jsonstr = json.dumps(self.__get_json_dict__(), indent=4, sort_keys=True)
 
+        logging.info('saving %d chars at %s', len(jsonstr), self.__config_path__)
         with open(self.__config_path__, 'w', encoding='utf-8') as f:
             f.write(jsonstr)
 
@@ -231,6 +236,8 @@ class Config(object):
         :raise ValueError: when the value is not valid.
         """
 
+        logging.debug('setitem %s to %r', field, value)
+
         # if there is a dot in the name, we want to set an field of a subconfig
         if '.' in field:
             field, _, subfield = field.partition('.')
@@ -239,25 +246,34 @@ class Config(object):
 
         supposed_type = self.__type__(field)
 
+        logging.debug('supposed type: %s', supposed_type)
+
         if conftypes.is_valid(value, supposed_type):
             # everything is correct, we assign is directly
             self.__setattr__(field, value)
 
+
         elif isinstance(supposed_type, conftypes.ConfigType):
             # we may need to convert it
+            logging.debug('try to convert the value through ConfigType')
             try:
                 value = supposed_type.load(value)
                 self.__setattr__(field, value)
             except Exception:
-                raise ValueError('fail loading %s of type %s but supposed %s' % (value, type(value), supposed_type))
+                logging.warning('fail loading %r of type %s but supposed %s', value, type(value), supposed_type)
+                raise ValueError('fail loading %r of type %s but supposed %s' % (value, type(value), supposed_type))
+
         elif supposed_type in TYPE_TO_CLICK_TYPE:
             try:
+                logging.debug('try to convert the value throught click.ParamType')
                 value = TYPE_TO_CLICK_TYPE[supposed_type](value)
                 self.__setattr__(field, value)
             except Exception:
+                logging.warning('fail loading %r of type %s but supposed %s', value, type(value), supposed_type)
                 raise ValueError('fail loading %s of type %s but supposed %s' % (value, type(value), supposed_type))
         else:
             # it is just not good
+            logging.warning('fail loading %r of type %s but supposed %s', value, type(value), supposed_type)
             raise ValueError('fail loading %s of type %s but supposed %s' % (value, type(value), supposed_type))
 
     # ✓
@@ -341,11 +357,13 @@ class Config(object):
             # For instance, we don't want to override __load__.
 
             if field not in self:
+                logging.debug('field %s is not in the config', field)
                 continue
 
             try:
                 self[field] = value
             except ValueError:
+                logging.debug('failed to set %s to %r but we ignore it', field, value)
                 one_field_is_with_a_bad_type = True
                 self.__warn__(value, field)
 
