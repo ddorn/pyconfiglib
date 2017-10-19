@@ -2,13 +2,17 @@ import os
 
 import click
 from setup import get_version, save_version
+import subprocess
 
 TYPES = ['major', 'minor', 'patch']
 
 
 def run(cmd):
     click.secho(cmd, fg='yellow')
-    os.system(cmd)
+    result = subprocess.Popen(cmd)
+    text = result.communicate()[0]
+    return result.returncode
+
 
 
 @click.command()
@@ -39,12 +43,16 @@ def main(type, message):
     # if we don't, travis will not have the right version and will fail to deploy
     run('git commit -a -m "changing version number"'.format(message=message))
     run('git push origin')
-    # creating a realase with the new version
-    run('git tag v{version} -a -m "{message}"'.format(version=version,
-                                                      message=message))
-    run('git push origin --tags')
+    if run('py setup.py install') != 0:
+        click.secho('Failed to install the updated library', fg='red')
+    else:
+        return
+        # creating a realase with the new version
+        run('git tag v{version} -a -m "{message}"'.format(version=version,
+                                                          message=message))
+        run('git push origin --tags')
 
-    click.secho('Version changed to ' + version, fg='green')
+        click.secho('Version changed to ' + version, fg='green')
 
 
 if __name__ == '__main__':
