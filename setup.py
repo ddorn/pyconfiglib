@@ -8,5 +8,6 @@ setup(
     license='MIT',
     author='Diego Dorn',
     author_email='diego.dorn@free.fr',
-    description='Configuration for python made easy'
+    description='Configuration for python made easy',
+    install_requires=['click=6', 'pygments>=2.2']
 )
