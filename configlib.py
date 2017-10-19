@@ -163,7 +163,14 @@ class Config(object):
             if is_config_field(key):
                 yield key
 
-    def __contains__(self, item):
+    def __contains__(self, item: str):
+        # if there is a dot in item, it is a field of a subconfig
+        if '.' in item:
+            item, _, sub_item = item.partition('.')
+            if hasattr(self, item) and isinstance(self[item], SubConfig):
+                return sub_item in self[item]
+            else:
+                return False
         return is_config_field(item) and hasattr(self, item)
 
     def __load__(self):
@@ -217,6 +224,12 @@ class Config(object):
         :raise ValueError: when the value is not valid.
         """
 
+        # if there is a dot in the name, we want to set an field of a subconfig
+        if '.' in field:
+            field, _, subfield = field.partition('.')
+            self[field][subfield] = value
+            return
+
         supposed_type = self.__type__(field)
 
         if conftypes.is_valid(value, supposed_type):
@@ -241,8 +254,11 @@ class Config(object):
             raise ValueError('fail loading %s of type %s but supposed %s' % (value, type(value), supposed_type))
 
     # ✓
-    def __getitem__(self, item):
+    def __getitem__(self, item: str):
         # proxy to getattribute to have be symetrical to __setitem__
+        if '.' in item:
+            item, _, sub = item.partition('.')
+            return self[item][sub]
         return self.__getattribute__(item)
 
     # ✓
@@ -345,8 +361,12 @@ class Config(object):
         click.echo('.')
 
     # ✓
-    def __type__(self, field):
+    def __type__(self, field: str):
         """Get the type given by __field_type__"""
+        if '.' in field:
+            subconfigs, _, field = field.rpartition('.')
+            return self['{subconfigs}.__{field}_type__'.format(subconfigs=subconfigs,
+                                                               field=field)]
         return self['__{field}_type__'.format(field=field)]
 
     # ✓
