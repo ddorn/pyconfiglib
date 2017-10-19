@@ -23,7 +23,7 @@ def main(type, message):
 
     # read and parsing the version
     version = get_version()
-    version = list(map(int, version.split('.')))
+    last_version = version = list(map(int, version.split('.')))
 
     importance = TYPES.index(type)
     # we increase major/minor/path as chosen
@@ -34,19 +34,22 @@ def main(type, message):
 
     # save the version
     save_version(*version)
-    version = get_version()
-
-    # default message if nothing was provided
-    message = ' '.join(message) if message else 'Release of version %s' % version
 
     # we need to commit and push the change of the version number before everything
     # if we don't, travis will not have the right version and will fail to deploy
-    run('git commit -a -m "changing version number"'.format(message=message))
-    run('git push origin')
-    if run('py setup.py install') != 0:
-        click.secho('Failed to install the updated library', fg='red')
+    errorcode = run('py setup.py install --user')
+    print(errorcode)
+    if errorcode != 0:
+        click.secho('Failed to install the updated library.', fg='red')
+        save_version(*last_version)
+        click.secho('Version reverted to %s' % get_version(), fg='yellow')
     else:
-        return
+        version = get_version()
+
+        # default message if nothing was provided
+        message = ' '.join(message) if message else 'Release of version %s' % version
+        run('git commit -a -m "changing version number"'.format(message=message))
+        run('git push origin')
         # creating a realase with the new version
         run('git tag v{version} -a -m "{message}"'.format(version=version,
                                                           message=message))
