@@ -4,6 +4,21 @@ import configlib
 import conftypes
 
 
+class WallColors(configlib.SubConfig):
+
+    east = (255, 0, 0)
+    __east_type__ = conftypes.color
+
+    west = (0, 255, 0)
+    __west_type__ = conftypes.color
+
+    nord = (0, 0, 255)
+    __nord_type__ = conftypes.color
+
+    south = (0, 0, 0)
+    __south_type__ = conftypes.color
+
+
 class Colors(configlib.SubConfig):
     """The colors of your favorite text editor"""
 
@@ -12,6 +27,8 @@ class Colors(configlib.SubConfig):
 
     background = (255, 255, 255)
     __background_type__ = conftypes.color
+
+    walls = WallColors()
 
 
 class Config(configlib.Config):
@@ -30,6 +47,7 @@ class Config(configlib.Config):
     __bald_hint__ = "Are you bald ?"
 
     colors = Colors()
+    default = Colors()
 
 if __name__ == '__main__':
     configlib.update_config(Config)

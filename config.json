@@ -3,7 +3,23 @@
     "bald": true,
     "colors": {
         "background": "#ffffff",
-        "text": "#408080"
+        "text": "#102030",
+        "walls": {
+            "east": "#ff0000",
+            "nord": "#0000ff",
+            "south": "#000000",
+            "west": "#00ff00"
+        }
+    },
+    "default": {
+        "background": "#ffffff",
+        "text": "#408080",
+        "walls": {
+            "east": "#ff0000",
+            "nord": "#0000ff",
+            "south": "#000000",
+            "west": "#00ff00"
+        }
     },
     "documents": "~/Documents",
     "name": "Archibald"
