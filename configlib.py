@@ -442,12 +442,26 @@ def update_config(config: type(Config)):
         # with a context manager, the config is always saved at the end
         with config:
 
-            dct = {}
-            for field in fields_to_set:
-                field, _, value = field.partition('=')
-                dct[field] = value
 
-            if dct:
+            if len(fields_to_set) == 1 and '=' not in fields_to_set[0]:
+                # we want to update a part of the config
+                sub = fields_to_set[0]
+                if sub in config:
+                    if isinstance(config[sub], SubConfig):
+                        # the part is a subconfig
+                        prompt_update_all(config[sub])
+                    else:
+                        # TODO: dynamic prompt for one field
+                        raise click.BadParameter('%s is not a SubConfig of the configuration')
+
+                else:
+                    raise click.BadParameter('%s is not a field of the configuration')
+
+            elif fields_to_set:
+                dct = {}
+                for field in fields_to_set:
+                    field, _, value = field.partition('=')
+                    dct[field] = value
                 # save directly what is passed if something was passed whitout the interactive prompt
                 config.__update__(dct)
             else:
