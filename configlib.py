@@ -392,15 +392,13 @@ def update_config(config: type(Config)):
 
         ctx.exit()
 
-    # this is the real function for the CLI
-    # all options must be eager and start with only one dash, so it doesn't conflic with any possible field
     @click.command(context_settings={'ignore_unknown_options': True})
-    @click.option('-l', '-list', is_eager=True, is_flag=True, expose_value=False, callback=print_list,
-                  help='List the availaible configuration fields.')
-    @click.option('-s', '-show', is_eager=True, is_flag=True, expose_value=False, callback=show_conf,
-                  help='View the configuration.')
-    @click.option('-c', '-clean', is_eager=True, is_flag=True, expose_value=False, callback=clean,
+    @click.option('-c', '--clean', is_eager=True, is_flag=True, expose_value=False, callback=clean,
                   help='Clean the file where the configutation is stored.')
+    @click.option('-l', '--list', is_eager=True, is_flag=True, expose_value=False, callback=print_list,
+                  help='List the availaible configuration fields.')
+    @click.option('-s', '--show', is_eager=True, is_flag=True, expose_value=False, callback=show_conf,
+                  help='View the configuration.')
     @click.argument('fields-to-set', nargs=-1, type=click.UNPROCESSED)
     def command(fields_to_set: 'Tuple[str]'):
         """
@@ -426,5 +424,5 @@ def update_config(config: type(Config)):
                 # or update all
                 prompt_update_all(config)
 
-    # finally run the command
+    # this is the real function for the CLI
     command()
