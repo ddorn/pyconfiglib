@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 
 setup(
     name='configlib',
@@ -9,5 +9,5 @@ setup(
     author='Diego Dorn',
     author_email='diego.dorn@free.fr',
     description='Configuration for python made easy',
-    install_requires=['click=6', 'pygments>=2.2']
+    install_requires=['click==6.*', 'pygments>=2.2']
 )
