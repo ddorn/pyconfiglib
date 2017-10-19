@@ -35,7 +35,8 @@ def main(type, message):
     # save the version
     save_version(*version)
 
-    # make sur it passes the tests
+    # make sure it passes the tests
+    run('pip uninstall pyconfiglib')
     if run('pytest') != 0:
         click.secho("The test doesn't pass.", fg='red')
         save_version(*last_version)
