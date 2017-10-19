@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/ddorn/configlib.svg?branch=v1.1.0)](https://travis-ci.org/ddorn/configlib)
+
 # configlib
 
 A bit desesperate by the lack of good and easy to use configuration libraries in python, 
