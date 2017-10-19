@@ -11,9 +11,17 @@ def get_version():
 
 
 def save_version(major, minor, patch):
+    version = '%d.%d.%d' % (major, minor, patch)
     with open(VERSION_FILE, 'w') as f:
-        f.write('%d.%d.%d' % (major, minor, patch))
+        f.write(version)
 
+    with open('readme.md') as f:
+        readme = f.readlines()
+
+    readme[0] = '[![Build Status](https://travis-ci.org/ddorn/configlib.svg?branch=v%s)](https://travis-ci.org/ddorn/configlib)' % version
+
+    with open('readme.md', 'w') as f:
+        f.writelines(readme)
 
 if __name__ == '__main__':
 
