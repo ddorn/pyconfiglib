@@ -15,7 +15,6 @@ def is_valid(instance, type_):
 
 
 class ConfigType(click.ParamType):
-
     name = 'any'
 
     def __repr__(self):
@@ -54,7 +53,6 @@ class SubConfigType(ConfigType):
         self.sub_config_class = sub_config_class  # type: type(configlib.SubConfig)
 
     def load(self, value):
-
         if isinstance(value, str):
             try:
                 value = json.loads(value)
@@ -72,6 +70,7 @@ class SubConfigType(ConfigType):
     def is_valid(self, value):
         return isinstance(value, self.sub_config_class)
 
+
 class _ColorType(ConfigType):
     name = 'color'
 
@@ -81,7 +80,7 @@ class _ColorType(ConfigType):
 
         size = len(value) // 3
         factor = 1 if size == 2 else 16
-        r, g, b = [value[1 + size*i: 1 + size*(i+1)] for i in range(3)]
+        r, g, b = [value[1 + size * i: 1 + size * (i + 1)] for i in range(3)]
         return [int(c, 16) * factor for c in (r, g, b)]
 
     def is_valid(self, value):
@@ -96,7 +95,6 @@ class _ColorType(ConfigType):
 
 
 class _PathType(ConfigType):
-
     name = 'path'
 
     def is_valid(self, value):
