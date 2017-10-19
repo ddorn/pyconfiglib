@@ -43,7 +43,7 @@ def main(type, message):
         return
 
     # make sur I can install it
-    if run('py setup.py install --user clean') != 0:
+    if run('py setup.py install --user clean --all') != 0:
         click.secho('Failed to install the updated library.', fg='red')
         save_version(*last_version)
         click.secho('Version reverted to %s' % get_version(), fg='yellow')
