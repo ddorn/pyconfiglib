@@ -25,7 +25,8 @@ def main(type, message):
     # read and parsing the version
     version = get_version()
     click.secho('Current version: %s' % version, fg='green')
-    last_version = version = list(map(int, version.split('.')))
+    version = list(map(int, version.split('.')))
+    last_version = version[:]
     def revert_version():
         save_version(*last_version)
         click.secho('Version reverted to %s' % get_version(), fg='yellow')
