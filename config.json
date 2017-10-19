@@ -2,18 +2,14 @@
     "age": 42,
     "bald": true,
     "colors": {
-        "background": "#ffffff",
-        "text": "#102030",
-        "walls": {
+        "castle": {
             "east": "#ff0000",
             "nord": "#0000ff",
             "south": "#000000",
             "west": "#00ff00"
-        }
-    },
-    "default": {
-        "background": "#ffffff",
-        "text": "#408080",
+        },
+        "light": "#ffffff",
+        "text": "#102030",
         "walls": {
             "east": "#ff0000",
             "nord": "#0000ff",
