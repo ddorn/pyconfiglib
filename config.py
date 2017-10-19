@@ -27,9 +27,6 @@ class WallColors(configlib.SubConfig):
 class Colors(configlib.SubConfig):
     """The colors of your favorite text editor"""
 
-    text = (64, 128, 128)
-    __text_type__ = conftypes.color
-
     light = (255, 255, 255)
     __light_type__ = conftypes.color
     __light_hint__ = 'The color of your lights'
