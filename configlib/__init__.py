@@ -50,10 +50,10 @@ import os
 from typing import Tuple
 
 import click
-import log
-from prompting import prompt_file
+from . import log
+from .prompting import prompt_file
 
-from configlib import conftypes
+from .conftypes import SubConfigType, path, color, ConfigType
 
 log.setup_logging(35)
 logging.info('START')
@@ -67,6 +67,7 @@ except ImportError:
     JsonLexer = None  # type: type
     TerminalFormatter = None  # type: type
     logging.debug('Pygment not installed')
+
 
 TYPE_TO_CLICK_TYPE = {
     int: click.INT,
@@ -508,3 +509,6 @@ def update_config(config: type(Config)):
     logging.debug('start command')
     command()
     logging.debug('end command')
+
+
+__all__ = ['Config', 'SubConfig', 'ConfigType', 'color', 'path', 'prompt_update_all']
