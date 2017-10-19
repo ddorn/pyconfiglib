@@ -63,12 +63,15 @@ def main(type, message):
     # if we don't, travis will not have the right version and will fail to deploy
     run('git commit -a -m "changing version number"'.format(message=message))
     run('git push origin')
-    # creating a realase with the new version
-    run('git tag v{version} -a -m "{message}"'.format(version=version,
-                                                      message=message))
-    run('git push origin --tags')
+    if click.confirm('Are you sure you want to create a new release ?'):
+        # creating a realase with the new version
+        run('git tag v{version} -a -m "{message}"'.format(version=version,
+                                                          message=message))
+        run('git push origin --tags')
 
-    click.secho('Version changed to ' + version, fg='green')
+        click.secho('Version changed to ' + version, fg='green')
+    else:
+        revert_version()
 
 
 if __name__ == '__main__':
