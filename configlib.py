@@ -312,7 +312,8 @@ class Config(object):
             text = '{field} ({type})  '.format(field=field, type=type_)
 
             if self.__hint__(field) != field:
-                click.echo('{pre} - {text:.<52}  {hint}'.format(pre=prefix, text=text, hint=self.__hint__(field)))
+                # 51 and not 42 because of the size of the ansii escape sequence
+                click.echo('{pre} - {text:.<51}  {hint}'.format(pre=prefix, text=text, hint=self.__hint__(field)))
             else:
                 click.echo('{pre} - {text}'.format(pre=prefix, text=text))
 
@@ -325,7 +326,7 @@ class Config(object):
                 click.echo('{pre} - {field:.<42}  {hint}'.format(pre=prefix, field=field + ':  ', hint=self.__hint__(field)))
             else:
                 click.echo('{pre} - {field}:'.format(pre=prefix, field=field))
-            self[field].__print_list__(prefix + '   ')
+            self[field].__print_list__(prefix + '    ')
     # ✓
     def __show__(self):
         """Print the json that stores the data with colors."""
