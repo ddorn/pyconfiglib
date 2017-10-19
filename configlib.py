@@ -104,8 +104,12 @@ def prompt_update_all(config: 'Config'):
         else:
             default = config[field]
 
+        # a too long hint is awfull
+        if len(str(default)) > 14:
+            default = str(default)[:10] + '...'
+
         # ask untill we have the right type
-        value = click.prompt(hint, default=default, type=type_, )
+        value = click.prompt(hint, default=default, type=type_)
 
         # click doesnt convert() the default if nothing is entered, so it wont be valid
         # however we don't care because default means that we don't have to update
