@@ -302,21 +302,30 @@ class Config(object):
         if not prefix:
             click.echo("The following fields are available: ")
 
-        size = len(str(len(self)))
-        for i, field in enumerate(list(self)):
-            click.echo(prefix + " - {:-{}} ".format(i + 1, size), nl=0)
-            click.echo(field, nl=0)
-
+        # we list the fields
+        for field in self:
             if isinstance(self[field], SubConfig):
-                click.echo(':')
-                self[field].__print_list__(prefix + ' ' * (size + 3))
                 continue
 
             # we print the supposed type
-            click.echo(' (', nl=0)
-            click.secho(self.__type__(field).__name__, fg='yellow', nl=0)
-            click.echo(')')
+            type_ = click.style(self.__type__(field).__name__, fg='yellow')
+            text = '{field} ({type})  '.format(field=field, type=type_)
 
+            if self.__hint__(field) != field:
+                click.echo('{pre} - {text:.<52}  {hint}'.format(pre=prefix, text=text, hint=self.__hint__(field)))
+            else:
+                click.echo('{pre} - {text}'.format(pre=prefix, text=text))
+
+        # and then the subconfigs
+        for field in self:
+            if not isinstance(self[field], SubConfig):
+                continue
+
+            if self.__hint__(field) != field:
+                click.echo('{pre} - {field:.<42}  {hint}'.format(pre=prefix, field=field + ':  ', hint=self.__hint__(field)))
+            else:
+                click.echo('{pre} - {field}:'.format(pre=prefix, field=field))
+            self[field].__print_list__(prefix + '   ')
     # ✓
     def __show__(self):
         """Print the json that stores the data with colors."""
