@@ -42,6 +42,7 @@ To use the configlib in your project, just create a file name `conf.py` awith th
 
 Made with love by ddorn (https://github.com/ddorn/)
 """
+
 import inspect
 import json
 import os
@@ -150,7 +151,10 @@ class Config(object):
             if is_config_field(key):
                 yield key
 
-    def __load__(self, **dct):
+    def __contains__(self, item):
+        return is_config_field(item) and hasattr(self, item)
+
+    def __load__(self):
         try:
             with open(self.__config_path__, 'r', encoding='utf-8') as f:
                 file = f.read()
@@ -160,13 +164,7 @@ class Config(object):
 
         conf = json.loads(file)  # type: dict
 
-        # we update only the fields in the conf so if someone added fields in the json,
-        # they won't interfere with the already defines attributes...
-        # For instance, we don't want to override __load__.
-
-        # we keep the actual value if it is not in the config
-        dct = {field: conf.get(field, self[field]) for field in self}
-        self.__update__(dct)
+        self.__update__(conf)
 
     # ✓
     def __save__(self):
@@ -275,15 +273,21 @@ class Config(object):
         """
         Update all the fields with the key/values in the dict.
 
-        The dict must be composed only of fields.
         When the type is wrong, a warning is printed and the field is not updated.
-
         Return the succes of settin ALL fields of the dict.
         """
 
         one_field_is_with_a_bad_type = False
 
         for field, value in dct.items():
+
+            # we update only the fields in the conf so if someone added fields in the json,
+            # they won't interfere with the already defines attributes...
+            # For instance, we don't want to override __load__.
+
+            if field not in self:
+                continue
+
             try:
                 self[field] = value
             except ValueError:
