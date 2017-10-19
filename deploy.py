@@ -18,6 +18,7 @@ def run(cmd):
 @click.command()
 @click.argument('type', type=click.Choice(TYPES))
 @click.argument('message', nargs=-1)
+@click.version_option(get_version())
 def main(type, message):
     """Deploy a project easily and change the version number at the same time."""
 
