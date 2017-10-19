@@ -92,9 +92,7 @@ class _ColorType(ConfigType):
                    for c in value)
 
     def save(self, value):
-        return '#{}{}{}'.format(hex(value[0])[2:],
-                                hex(value[1])[2:],
-                                hex(value[2])[2:])
+        return '#{:02x}{:02x}{:02x}'.format(*value)
 
 
 class _PathType(ConfigType):
