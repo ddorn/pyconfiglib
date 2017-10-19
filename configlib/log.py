@@ -1,11 +1,16 @@
 import logging
+import os
 from logging.handlers import RotatingFileHandler
 
 FILE_LOG_LEVEL = logging.DEBUG
-
+FILE = 'assets/activity.log'
 
 def setup_logging(console_level):
     # Thanks to  http://sametmax.com/ecrire-des-logs-en-python/
+
+    # make sure the directory exists
+    os.makedirs(os.path.dirname(FILE), exist_ok=True)
+
     # création de l'objet logger qui va nous servir à écrire dans les logs
     logger = logging.getLogger()
     # on met le niveau du logger à DEBUG, comme ça il écrit tout
@@ -16,7 +21,7 @@ def setup_logging(console_level):
     formatter = logging.Formatter('%(asctime)s :: %(levelname)-8s :: [%(filename)s:%(lineno)d] :: %(message)s')
     # création d'un handler qui va rediriger une écriture du log vers
     # un fichier en mode 'append', avec 1 backup et une taille max de 1Mo
-    file_handler = RotatingFileHandler('assets/activity.log', 'a', 1000000, 1)
+    file_handler = RotatingFileHandler(FILE, 'a', 1000000, 1)
     # on lui met le niveau sur DEBUG, on lui dit qu'il doit utiliser le formateur
     # créé précédement et on ajoute ce handler au logger
     file_handler.setLevel(FILE_LOG_LEVEL)
