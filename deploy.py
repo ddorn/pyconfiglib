@@ -35,27 +35,35 @@ def main(type, message):
     # save the version
     save_version(*version)
 
-    # we need to commit and push the change of the version number before everything
-    # if we don't, travis will not have the right version and will fail to deploy
-    errorcode = run('py setup.py install --user')
-    print(errorcode)
-    if errorcode != 0:
+    # make sur it passes the tests
+    if run('pytest') != 0:
+        click.secho("The test doesn't pass.", fg='red')
+        save_version(*last_version)
+        click.secho('Version reverted to %s' % get_version(), fg='yellow')
+        return
+
+    # make sur I can install it
+    if run('py setup.py install --user clean') != 0:
         click.secho('Failed to install the updated library.', fg='red')
         save_version(*last_version)
         click.secho('Version reverted to %s' % get_version(), fg='yellow')
-    else:
-        version = get_version()
+        return
 
-        # default message if nothing was provided
-        message = ' '.join(message) if message else 'Release of version %s' % version
-        run('git commit -a -m "changing version number"'.format(message=message))
-        run('git push origin')
-        # creating a realase with the new version
-        run('git tag v{version} -a -m "{message}"'.format(version=version,
-                                                          message=message))
-        run('git push origin --tags')
+    version = get_version()
 
-        click.secho('Version changed to ' + version, fg='green')
+    # default message if nothing was provided
+    message = ' '.join(message) if message else 'Release of version %s' % version
+
+    # we need to commit and push the change of the version number before everything
+    # if we don't, travis will not have the right version and will fail to deploy
+    run('git commit -a -m "changing version number"'.format(message=message))
+    run('git push origin')
+    # creating a realase with the new version
+    run('git tag v{version} -a -m "{message}"'.format(version=version,
+                                                      message=message))
+    run('git push origin --tags')
+
+    click.secho('Version changed to ' + version, fg='green')
 
 
 if __name__ == '__main__':
