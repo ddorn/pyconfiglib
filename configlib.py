@@ -159,7 +159,8 @@ class Config(object):
                     setattr(cls, field_type_name, conftypes.SubConfigType(type(default)))
                 else:
                     setattr(cls, field_type_name, type(default))
-                    logging.debug('In %s the field %s has now type %s because the default is %r', cls, field, type(default), default)
+                    logging.debug('In %s the field %s has now type %s because the default is %r', cls, field,
+                                  type(default), default)
 
     # ✓
     def __iter__(self):
@@ -236,21 +237,21 @@ class Config(object):
         :raise ValueError: when the value is not valid.
         """
 
-        logging.debug('setitem %s to %r', field, value)
-
         # if there is a dot in the name, we want to set an field of a subconfig
         if '.' in field:
             field, _, subfield = field.partition('.')
+            logging.debug('setting subitem %s in %s', subfield, field)
             self[field][subfield] = value
             return
 
         supposed_type = self.__type__(field)
 
-        logging.debug('supposed type: %s', supposed_type)
+        logging.debug('SETITEM %s to %r supposed type: %s', field, value, supposed_type)
 
         if conftypes.is_valid(value, supposed_type):
             # everything is correct, we assign is directly
             self.__setattr__(field, value)
+            logging.debug('valid')
 
 
         elif isinstance(supposed_type, conftypes.ConfigType):
@@ -444,6 +445,7 @@ def update_config(config: type(Config)):
             return param
 
         config.__save__()
+        click.echo('Cleaned !')
 
         ctx.exit()
 
@@ -466,7 +468,6 @@ def update_config(config: type(Config)):
 
         # with a context manager, the config is always saved at the end
         with config:
-
 
             if len(fields_to_set) == 1 and '=' not in fields_to_set[0]:
                 # we want to update a part of the config
@@ -494,4 +495,6 @@ def update_config(config: type(Config)):
                 prompt_update_all(config)
 
     # this is the real function for the CLI
+    logging.debug('start command')
     command()
+    logging.debug('end command')
