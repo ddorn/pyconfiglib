@@ -1,4 +1,4 @@
 import configlib
 
 class Config(configlib.Config):
-    name = 'configlib'
+    name = 'pyconfiglib'
