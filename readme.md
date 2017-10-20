@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/ddorn/configlib.svg?branch=v1.2.0)](https://travis-ci.org/ddorn/configlib)
+[![Build Status](https://travis-ci.org/ddorn/configlib.svg?branch=v1.1.7)](https://travis-ci.org/ddorn/configlib)
 
 # configlib
 
