@@ -18,7 +18,7 @@ def save_version(major, minor, patch):
     with open('readme.md') as f:
         readme = f.readlines()
 
-    readme[0] = '[![Build Status](https://travis-ci.org/ddorn/configlib.svg?branch=v%s)](https://travis-ci.org/ddorn/configlib)' % version
+    readme[0] = '[![Build Status](https://travis-ci.org/ddorn/configlib.svg?branch=v%s)](https://travis-ci.org/ddorn/configlib)\n' % version
 
     with open('readme.md', 'w') as f:
         f.writelines(readme)
@@ -28,11 +28,14 @@ if __name__ == '__main__':
     try:
         with open('readme.rst') as f:
             long_description = f.read()
-    except:
+    except FileNotFoundError:
         long_description = 'Configuration for python made easy'
 
+    import manconfig
+    config = manconfig.Config()
+
     setup(
-        name='pyconfiglib',
+        name=config.name,
         version=get_version(),
         packages=['configlib'],
         url='https://github.com/ddorn/configlib',
@@ -43,6 +46,7 @@ if __name__ == '__main__':
         long_description=long_description,
         install_requires=['click==6.*', 'pygments>=2.2'],
         package_data={
-            'configlib': ['version']
-        }
+            'configlib': ['version'],
+            '.': ['manconfig.py']
+        },
     )

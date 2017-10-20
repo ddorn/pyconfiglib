@@ -378,7 +378,7 @@ class Config(object):
                 logging.debug('failed to set %s to %r but we ignore it', field, value)
                 one_field_is_with_a_bad_type = True
                 self.__warn__(value, field)
-                
+
                 if strict:
                     raise
 
