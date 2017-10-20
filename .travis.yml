@@ -4,10 +4,22 @@ python:
 script:
   - pytest
 deploy:
-  provider: pypi
+# real pypi
+- provider: pypi
   user: ddorn
   password:
     secure: eAlGDp1+b1qlAXGzNLx5CmZCtaMXTkUjJOJn8nPaWQ7pKYdlYncLBp7Ucl3EGIGIQ80Iobt3LSyWHIp2B3O6z/0n+8e41sAQQtdJ9YiWNju1gU0iuPUBBk5r4Eo1ld+H2GKvlEsU6NC8r6KIko77WA2JXbmGCKzUlSUKOvTzUO1YHvyeegj2/8JMUWgem8bkRTywvlQPPDIStFJNsElCq0MsznFY96oKRMTqRv5W8C0QD/4uheRPS130ZGBQeWKLbVZiCiKbyPu0XkkdlbPlI8DfJnN2wdxxbInUsLK8BE5LKSkW+mJwAhAUeA2TTSHzQBI/GF0qWQTagEog8jIdfuhCmbJ5pq0N5Vsdq+zqqHzDWiIgahOmf3/a5c+5/qICXk6KTGAzhH+uu58TYBLEuezo+3UmDTwES6dhg9N6vJG0KrzD9TzbvQt6KVjhpyH2p5yTHxYRlSsyUc1eOJ+sJRO5rEx7wnkNEyDqKl4geQp0h4yKYqpUAMfAFxBIIcHNb6VD63SKcZXQ6mU//CmRl8trUw5DSVcdFwacnWKyv4VTsjRGBNJe1RXCZPBlzlO+Q18hgUKfSDrc5k62pPJpXuMcUKwjCJYWccWCFopDixlPYRltXoXRiKiYrKZ0WHVJGgIcq5vEvadxwN4rkLBwtZVE6u4f+zfl773gPck6sTo=
   on:
     condition: $TRAVIS_PYTHON_VERSION = "3.6"
     tags: true
+# I need to find a way to change the version only for testpypi
+## test pypi
+#- provider: pypi
+#  server: https://testpypi.python.org/pypi
+#  user: diego
+#  password:
+#    secure: QzpmVzcoWeUnSRdd0e3aBBkmowUNbhuOkNnqWXd8UlfFJmzF66/w8jw/GipQ621XcbUTZ9KQ1C0qwC/9iPtLRjIQa4cBNzSS+13Se7ymb1bhwcLK+GSuCCzkhf8q95qeeg0i0bLG2DuGP+asbpwVFF1sMgm1MXlA2lPy1nCP/7pbd9BEwxVdrja6zflBogIllVvGSkL+FvpqRh3lH35szFBsfOXVf9IpgdFJBP4pToRMnQaKrPxclF1NG619IgsJ3tmIZRSYgBnCjDclfMM1Kk+Ym2Vc3Uk+m+LjEicOxezT4UZD6/zaHDkREXSJFDFqYiXOtvTY3U1wCOUyHFENkkA/W8ckMtUmCBc7WIJPzV3/3+7yD+6vKVWXg0TWFrkk8Fj9z07ZCY1aiEA5XG3+kJrzLLr7nQSrsQBSpB4qO1qkuf2Erw9dcLuO5a0he5MkCpa+2UZlrmaMn8ITRD+ExU5QjuPXvjKPXrVsnTsWxxNkqQYNeRqwAniKKvNY+OjDd+JKulEepYIz68SE4jiaYK0aYxNEW5bXo9rSfTgRCJ8T/H/yIGw035cVlQlXqpOCo0NLsCqF+qm1fiS5/9AAoyaO37ZFUpHoR1SN52TzDwe8lQRu2VsRwiI0MtMX3FYMEmcohE468UvbRuXFTrYHHx+oURKFlBu9qB1Gl0b1qa0=
+#  on:
+#    branch: master
+#    tags: false
+#    condition: $TRAVIS_PYTHON_VERSION = "3.6"
