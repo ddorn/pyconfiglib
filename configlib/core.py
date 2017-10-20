@@ -136,8 +136,8 @@ class Config(object):
     __config_path__ = 'config.json'
 
     # ✓
-    def __init__(self):
-        self.__load__()
+    def __init__(self, strict=False):
+        self.__load__(strict)
 
     # ✓
     def __init_subclass__(cls, **kwargs):
@@ -184,7 +184,7 @@ class Config(object):
                 return False
         return is_config_field(item) and hasattr(self, item)
 
-    def __load__(self):
+    def __load__(self, strict=False):
         try:
             with open(self.__config_path__, 'r', encoding='utf-8') as f:
                 file = f.read()
@@ -196,7 +196,7 @@ class Config(object):
 
         conf = json.loads(file)  # type: dict
 
-        self.__update__(conf)
+        self.__update__(conf, strict)
 
     # ✓
     def __save__(self):
@@ -352,7 +352,7 @@ class Config(object):
         click.echo(file)
 
     # ✓
-    def __update__(self, dct):
+    def __update__(self, dct, strict=False):
         """
         Update all the fields with the key/values in the dict.
 
@@ -378,6 +378,9 @@ class Config(object):
                 logging.debug('failed to set %s to %r but we ignore it', field, value)
                 one_field_is_with_a_bad_type = True
                 self.__warn__(value, field)
+                
+                if strict:
+                    raise
 
         if one_field_is_with_a_bad_type:
             click.echo("You can run `python {}` to update the configuration".format(
