@@ -102,7 +102,7 @@ def release(importance, message, test):
     run('git commit -a -m "changing version number"'.format(message=message), test)
     run('git push origin', test)
 
-    if click.confirm('Are you sure you want to create a new release ?'):
+    if click.confirm('Are you sure you want to create a new release (v%s)?' % version):
         # creating a realase with the new version
         run('git tag v{version} -a -m "{message}"'.format(version=version,
                                                           message=message), test)
