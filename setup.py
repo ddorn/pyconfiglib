@@ -44,9 +44,11 @@ if __name__ == '__main__':
         author_email='diego.dorn@free.fr',
         description='Configuration for python made easy',
         long_description=long_description,
-        install_requires=['click==6.*', 'pygments>=2.2'],
+        install_requires=['click==6.*', 'pygments>=2.2', 'pyconfiglib==1.*'],
         package_data={
             'configlib': ['version'],
-            '.': ['manconfig.py']
         },
+        data_files=[
+            ('', ['manconfig.py', 'config.json'])
+        ]
     )
