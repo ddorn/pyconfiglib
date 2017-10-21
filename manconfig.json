@@ -13,7 +13,11 @@
         "pygments==2.*",
         "configlib==1.*"
     ],
-    "package_data": {},
+    "package_data": {
+        "configlib": [
+            "version"
+        ]
+    },
     "packages": [
         "configlib"
     ]

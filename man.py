@@ -217,6 +217,7 @@ def add_pkg_data(patern):
             run('man add file %s' % patern)
         return
 
+    patern = patern[len(package) + 1:]  # remove the package
     pkg_data = CONFIG.package_data
     if package in pkg_data:
         if patern in pkg_data[package]:
