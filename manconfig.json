@@ -10,8 +10,7 @@
     ],
     "dependancies": [
         "click==6.*",
-        "pygments==2.*",
-        "configlib==1.*"
+        "pygments==2.*"
     ],
     "package_data": {
         "configlib": [
