@@ -44,7 +44,7 @@ if __name__ == '__main__':
         author_email='diego.dorn@free.fr',
         description='Configuration for python made easy',
         long_description=long_description,
-        install_requires=['click==6.*', 'pygments>=2.2', 'pyconfiglib==1.*'],
+        install_requires=config.dependancies,
         package_data=config.package_data,
         data_files=config.data_files
     )

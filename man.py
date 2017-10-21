@@ -109,11 +109,34 @@ def add():
 
 @add.command(name='dep')
 @click.argument('lib')
-def add_dep(lib):
+@click.argument('version', default='')
+def add_dep(lib, version):
     import importlib
-    modul = importlib.import_module(lib)
-    print(f'{lib}=={modul.__version__}')
+    try:
+        modul = importlib.import_module(lib)
+    except ModuleNotFoundError:
+        click.secho('The library %s does not exist or is not installed.' % lib, fg='red')
+        return
 
+    if not version:
+        ver = modul.__version__
+        click.echo('The current version of %s is %s' % (lib, click.style(ver, fg='green')))
+
+        default = 'Not specified'
+        version = click.prompt('Version', default=default)
+        version = '' if version == default else version
+
+    if version and not version.startswith(('==', '>', '<', '!=')):  # ✓
+        version = '==' + version
+
+    dep = '%s%s' % (lib, version)
+
+    if dep in CONFIG.dependancies:
+        click.secho('%s is already in the dependancies' % dep, fg='red')  # ✓
+        return
+
+    CONFIG.dependancies.append(dep)  # ✓
+    click.secho('Added dependancy %s' % dep, fg='green')
 
 # ✓
 @add.command('file')
@@ -134,7 +157,7 @@ def add_file(patern):
         filename = os.path.relpath(filename, os.path.dirname(__file__))
         directory = os.path.relpath(os.path.dirname(filename) or '.', os.path.dirname(__file__))
         directory = '' if directory == '.' else directory
-        print(directory)
+
         # it seems that package_data doesn't work for files inside packages, so we check if this file is in a pkg
         for pkg in CONFIG.packages:
             if directory.startswith(pkg):

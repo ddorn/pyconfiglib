@@ -13,6 +13,9 @@ class Config(configlib.Config):
     packages = []
     __packages_type__ = configlib.Python(list)
 
+    dependancies = []
+    __dependancies_type__ = configlib.Python(list)
+
 
 if __name__ == '__main__':
     c = Config()

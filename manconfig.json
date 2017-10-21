@@ -8,6 +8,11 @@
             ]
         ]
     ],
+    "dependancies": [
+        "click==6",
+        "configlib==1.*",
+        "pygments==2.*"
+    ],
     "package_data": {},
     "packages": [
         "configlib"
