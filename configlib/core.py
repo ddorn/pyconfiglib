@@ -68,7 +68,6 @@ except ImportError:
     TerminalFormatter = None  # type: type
     logging.debug('Pygment not installed')
 
-
 TYPE_TO_CLICK_TYPE = {
     int: click.INT,
     float: click.FLOAT,
@@ -328,6 +327,7 @@ class Config(object):
             else:
                 click.echo('{pre} - {field}:'.format(pre=prefix, field=field))
             self[field].__print_list__(prefix + '    ')
+
     # ✓
     def __show__(self):
         """Print the json that stores the data with colors."""
@@ -423,7 +423,7 @@ class SubConfig(Config):
         self.__update__(dct)
 
 
-def update_config(config: type(Config)):
+def update_config(configclass: type(Config)):
     """Command line function to update and the a config."""
 
     # we build the real click command inside the function, because it needs to be done
@@ -431,7 +431,7 @@ def update_config(config: type(Config)):
 
     # we ignore the type errors, keeping the the defaults if needed
     # everything will be updated anyway
-    config = config()  # type: Config
+    config = configclass()  # type: Config
 
     def print_list(ctx, param, value):
         # they do like that in the doc (http://click.pocoo.org/6/options/#callbacks-and-eager-options)
@@ -453,6 +453,24 @@ def update_config(config: type(Config)):
 
         ctx.exit()
 
+    def reset(ctx, param, value):
+        # see print_list
+        if not value or ctx.resilient_parsing:
+            return param
+
+        click.confirm('Are you sure you want to reset ALL fields to the defaults ? This action is not reversible.', abort=True)
+
+        # that doesn't exist
+        configclass.__config_path__, config_path = '', configclass.__config_path__
+        # So the file won't be opened and only the default will be loaded.
+        config = configclass()
+        # Thus we can save the defaults
+        # To the right place again
+        configclass.__config_path__ = config_path
+        config.__save__()
+
+        ctx.exit()
+
     def clean(ctx, param, value):
         # see print_list
         if not value or ctx.resilient_parsing:
@@ -468,6 +486,8 @@ def update_config(config: type(Config)):
                   help='Clean the file where the configutation is stored.')
     @click.option('-l', '--list', is_eager=True, is_flag=True, expose_value=False, callback=print_list,
                   help='List the availaible configuration fields.')
+    @click.option('--reset', is_flag=True, is_eager=True, expose_value=False, callback=reset,
+                  help='Reset all the fields to their default value.')
     @click.option('-s', '--show', is_eager=True, is_flag=True, expose_value=False, callback=show_conf,
                   help='View the configuration.')
     @click.argument('fields-to-set', nargs=-1, type=click.UNPROCESSED)
