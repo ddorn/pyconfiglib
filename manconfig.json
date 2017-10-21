@@ -1,0 +1,18 @@
+{
+    "data_files": [
+        [
+            "configlib",
+            [
+                "configlib\\version"
+            ]
+        ],
+        [
+            "",
+            [
+                "manconfig.json",
+                "manconfig.py"
+            ]
+        ]
+    ],
+    "package_data": {}
+}

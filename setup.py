@@ -35,7 +35,7 @@ if __name__ == '__main__':
     config = manconfig.Config()
 
     setup(
-        name=config.name,
+        name='pyconfiglib',
         version=get_version(),
         packages=['configlib'],
         url='https://github.com/ddorn/configlib',
@@ -45,10 +45,6 @@ if __name__ == '__main__':
         description='Configuration for python made easy',
         long_description=long_description,
         install_requires=['click==6.*', 'pygments>=2.2', 'pyconfiglib==1.*'],
-        package_data={
-            'configlib': ['version'],
-        },
-        data_files=[
-            ('', ['manconfig.py', 'config.json'])
-        ]
+        package_data=config.package_data,
+        data_files=config.data_files
     )
