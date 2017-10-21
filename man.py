@@ -3,6 +3,7 @@ import os
 import subprocess
 
 import click
+import pypandoc
 
 from setup import get_version, save_version
 import manconfig
@@ -58,6 +59,15 @@ def release(importance, message, test):
     # en reset the ones after
     for i in range(importance + 1, 3):
         version[i] = 0
+
+    # converting the readme in markdown to the one in rst
+    try:
+        pypandoc.convert_file('readme.md', 'rst', outputfile='readme.rst')
+        click.echo('Readme converted.')
+    except OSError:
+        pypandoc.download_pandoc()
+        pypandoc.convert_file('readme.md', 'rst', outputfile='readme.rst')
+        click.echo('Readme converted.')
 
     # save the version
     save_version(*version)
@@ -142,7 +152,7 @@ def add_dep(lib, version):
         f.write(dep)
     click.secho('Added dependancy %s' % dep, fg='green')
 
-# ✓
+
 @add.command('file')
 @click.argument('patern')
 def add_file(patern):
@@ -214,7 +224,7 @@ def add_pkg_data(patern):
 
     click.secho('Added patern"%s" in package "%s".' % (patern, package), fg='green')
 
-# ✓
+
 @add.command('pkg')
 @click.argument('pkg-dir')
 def add_pkg(pkg_dir: str):
