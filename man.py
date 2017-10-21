@@ -186,14 +186,17 @@ def add_file(patern):
 
 
 @add.command('pkg-data')
-@click.argument('package')
 @click.argument('patern')
-def add_pkg_data(package, patern):
+def add_pkg_data(patern):
 
-    if package not in CONFIG.packages:
-        click.secho("The package %s is not in the package list.", fg='yellow')
-        click.confirm("Do you want to add it to the package list ?", abort=True)
-        run('man add package %s' % package)
+    for package in sorted(CONFIG.packages, key=len, reverse=True):
+        if patern.startwith(package):
+            break
+    else:
+        click.secho("This file doesn't seems to be included in a defined package.")
+        if click.prompt('Do you want to add it as a regular file ?', default=True):
+            run('man add file %s' % patern)
+        return
 
     pkg_data = CONFIG.package_data
     for filename in glob.glob(patern):
