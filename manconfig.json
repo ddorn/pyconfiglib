@@ -9,7 +9,7 @@
         ]
     ],
     "dependancies": [
-        "click==6",
+        "click==6.*",
         "pygments==2.*",
         "configlib==1.*"
     ],

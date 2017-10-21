@@ -1,5 +1,5 @@
 # DO NOT MODFY THIS BY HAND. USE MAN.
 # https://stackoverflow.com/a/33685899/6160055
-click==6.7
-pygments==2.2.0
+click==6.*
+pygments==2.*
 configlib==1.*
