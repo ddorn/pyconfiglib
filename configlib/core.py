@@ -293,7 +293,7 @@ class Config(object):
     # ✓
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.__save__()
-        click.echo('\nSaved!')
+        # click.echo('\nSaved!')
 
     # ✓
     def __print_list__(self, prefix=''):
