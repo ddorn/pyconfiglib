@@ -12,9 +12,11 @@ TEST = False
 CONFIG = manconfig.Config()
 
 
-def run(cmd, test=False):
-    click.secho('$ ', fg='green', nl=0)
-    click.secho(cmd, fg='yellow')
+def run(cmd: str, test=False):
+    click.secho('$ ', fg='green', bold=1, nl=0)
+    click.secho(cmd, fg='cyan', bold=1)
+    if cmd.startswith('man '):
+        cmd = cmd.replace('man', 'python ' + __file__, 1)
     if not test:
         result = subprocess.Popen(cmd)
         text = result.communicate()[0]
@@ -189,8 +191,11 @@ def add_file(patern):
 @click.argument('patern')
 def add_pkg_data(patern):
 
+    # try to find which package it's in. We start we the longest names in case
+    # it is in a sub package, we want to add it in the subpackage
+    # I don't really know if it matters but well
     for package in sorted(CONFIG.packages, key=len, reverse=True):
-        if patern.startwith(package):
+        if patern.startswith(package):
             break
     else:
         click.secho("This file doesn't seems to be included in a defined package.")
@@ -199,17 +204,15 @@ def add_pkg_data(patern):
         return
 
     pkg_data = CONFIG.package_data
-    for filename in glob.glob(patern):
+    if package in pkg_data:
+        if patern in pkg_data[package]:
+            click.secho('The patern "%s" was already included in the package "%s".' % (patern, package), fg='yellow')
+            return
+        pkg_data[package].append(patern)
+    else:
+        pkg_data[package] = [patern]
 
-        if package in pkg_data:
-            if filename in pkg_data[package]:
-                click.secho('The file "%s" was already included in the package "%s".' % (filename, package), fg='yellow')
-                continue
-            pkg_data[package].append(filename)
-        else:
-            pkg_data[package] = [filename]
-
-        click.secho('Added file "%s" in package "%s".' % (filename, package), fg='green')
+    click.secho('Added patern"%s" in package "%s".' % (patern, package), fg='green')
 
 # ✓
 @add.command('pkg')

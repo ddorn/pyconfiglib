@@ -1,3 +1,4 @@
+import glob
 import os
 
 from setuptools import setup
@@ -34,6 +35,8 @@ if __name__ == '__main__':
     import manconfig
     config = manconfig.Config()
 
+    data_files = [(dir, list({file for patern in pats for file in glob.glob(patern)})) for (dir, pats) in config.data_files]
+    print(data_files)
     setup(
         name='pyconfiglib',
         version=get_version(),
@@ -46,5 +49,5 @@ if __name__ == '__main__':
         long_description=long_description,
         install_requires=config.dependancies,
         package_data=config.package_data,
-        data_files=config.data_files
+        data_files=data_files
     )
