@@ -46,6 +46,8 @@ if __name__ == '__main__':
         description='Configuration for python made easy',
         long_description=long_description,
         install_requires=config.dependancies,
-        package_data=config.package_data,
+        package_data={
+            'configlib': ['version'],
+        },
         data_files=[(dir, list({file for patern in pats for file in glob.glob(patern)})) for (dir, pats) in config.data_files]
     )
