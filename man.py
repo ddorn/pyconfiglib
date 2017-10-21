@@ -104,8 +104,7 @@ def release(importance, message, test):
 
     if click.confirm('Are you sure you want to create a new release (v%s)?' % version):
         # creating a realase with the new version
-        run('git tag v{version} -a -m "{message}"'.format(version=version,
-                                                          message=message), test)
+        run('git tag v%s -a -m "%s"' % (version, message), test)
         run('git push origin --tags', test)
 
         click.secho('Version changed to ' + version, fg='green')
