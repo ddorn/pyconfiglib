@@ -60,6 +60,9 @@ def release(importance, message, test):
     for i in range(importance + 1, 3):
         version[i] = 0
 
+    # save the version
+    save_version(*version)
+
     # converting the readme in markdown to the one in rst
     try:
         rst = pypandoc.convert_file('readme.md', 'rst')
@@ -72,9 +75,6 @@ def release(importance, message, test):
     with open('readme.rst', 'w') as f:
         f.write(rst)
     click.echo('Readme converted.')
-
-    # save the version
-    save_version(*version)
 
     # uninstall the previous version because the test imports it :/
     run('pip uninstall pyconfiglib --yes')
