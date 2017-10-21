@@ -101,6 +101,50 @@ class _PathType(ConfigType):
         return isinstance(value, str)
 
 
+class Python(ConfigType):
+    """
+    Represent a real python type that is converted from a string with eval().
+
+    :note: It can be maliciously used to inject code
+    """
+    name = 'dict'
+
+    def __init__(self, type_: type):
+        """
+        Represent a real python type that is converted from a string with eval().
+
+        :param type type_: The corresponding python type like dict, list or tuple...
+        """
+
+        self.type = type_
+        self.name = type_.__name__
+
+    def is_valid(self, value):
+        return isinstance(value, self.type)
+
+    def save(self, value):
+        return value
+
+    def load(self, value: str):
+        if isinstance(value, str):
+            try:
+                value = eval(value)
+            except:
+                pass
+        else:
+            # convert gently between similar types, for instance
+            # From tuples to lists, because tuples are stored as list in json...
+            try:
+                value = self.type(value)
+            except:
+                pass
+
+        if not isinstance(value, self.type):
+            raise ValueError('Does not evaluate to a %s' % self.type.__name__)
+
+        return value
+
+
 color = _ColorType()
 
 path = _PathType()
