@@ -37,7 +37,7 @@ if __name__ == '__main__':
     setup(
         name='pyconfiglib',
         version=get_version(),
-        packages=['configlib'],
+        packages=config.packages,
         url='https://github.com/ddorn/configlib',
         license='MIT',
         author='Diego Dorn',

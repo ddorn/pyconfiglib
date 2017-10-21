@@ -10,6 +10,9 @@ class Config(configlib.Config):
     data_files = []
     __data_files_type__ = configlib.Python(list)
 
+    packages = []
+    __packages_type__ = configlib.Python(list)
+
 
 if __name__ == '__main__':
     c = Config()
