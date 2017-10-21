@@ -62,12 +62,16 @@ def release(importance, message, test):
 
     # converting the readme in markdown to the one in rst
     try:
-        pypandoc.convert_file('readme.md', 'rst', outputfile='readme.rst')
-        click.echo('Readme converted.')
+        rst = pypandoc.convert_file('readme.md', 'rst')
     except OSError:
         pypandoc.download_pandoc()
-        pypandoc.convert_file('readme.md', 'rst', outputfile='readme.rst')
-        click.echo('Readme converted.')
+        rst = pypandoc.convert_file('readme.md', 'rst')
+    # pandoc put a lot of carriage return at the end, and we don't want them
+    rst = rst.replace('\r', '')
+    # save the converted readme
+    with open('readme.rst', 'w') as f:
+        f.write(rst)
+    click.echo('Readme converted.')
 
     # save the version
     save_version(*version)
