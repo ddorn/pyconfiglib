@@ -135,7 +135,9 @@ def add_dep(lib, version):
         click.secho('%s is already in the dependancies' % dep, fg='red')  # ✓
         return
 
-    CONFIG.dependancies.append(dep)  # ✓
+    CONFIG.dependancies.append(dep)
+    with open('requirements.txt', 'a') as f:
+        f.write(dep)
     click.secho('Added dependancy %s' % dep, fg='green')
 
 # ✓
