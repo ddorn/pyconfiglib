@@ -34,8 +34,7 @@ if __name__ == '__main__':
 
     import manconfig
     config = manconfig.Config()
-    print(config.package_data)
-    
+
     setup(
         name='pyconfiglib',
         version=get_version(),
