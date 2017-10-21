@@ -1,3 +1,4 @@
+import glob
 import os
 import subprocess
 
@@ -114,32 +115,126 @@ def add_dep(lib):
     print(f'{lib}=={modul.__version__}')
 
 
+# ✓
 @add.command('file')
-@click.argument('filename')
-def add_file(filename):
-    filename = os.path.relpath(filename, os.path.dirname(__file__))
-    directory = os.path.dirname(filename)
+@click.argument('patern')
+def add_file(patern):
+    """
+    Add a non code file to the data_files of setup.py.
+    You can provide a glob patern and all the matchnig files will be added.
+    """
 
-    data_files = CONFIG.data_files
-    for i, (direc, files) in enumerate(data_files):
-        if direc == directory:
-            if filename not in files:
-                files.append(filename)
+    filenames = glob.glob(patern)
+
+    if not filenames:
+        click.secho('Not matching files for patern "%s".' % patern, fg='red')
+        return
+
+    for filename in filenames:
+        filename = os.path.relpath(filename, os.path.dirname(__file__))
+        directory = os.path.relpath(os.path.dirname(filename) or '.', os.path.dirname(__file__))
+        directory = '' if directory == '.' else directory
+        print(directory)
+        # it seems that package_data doesn't work for files inside packages, so we check if this file is in a pkg
+        for pkg in CONFIG.packages:
+            if directory.startswith(pkg):
+                # If it is, ask if we use pkg insead
+                click.echo('This file is included in the package ' + click.style(pkg, fg='yellow') + '.')
+                if click.confirm('Do you want to use ' + click.style('add pgk-data', fg='yellow') + ' instead ?'):
+                    run('man add pkg-data "%s" "%s"' % (pkg, os.path.relpath(filename, pkg)))
+                else:
+                    click.secho('The file "%s" was not included' % filename,fg='red')
+                break
+        else:
+            # we add the file if it wasn't in a pkg
+            for i, (direc, files) in enumerate(CONFIG.data_files):
+                if direc == directory:
+                    if filename not in files:
+                        files.append(filename)
+                        click.secho('Added "%s" in "%s".' % (filename, directory), fg='green')
+                    else:
+                        click.secho('The file "%s" was already included in "%s".' % (filename, directory), fg='yellow')
+                    break
             else:
-                click.secho('The file "%s" was already included in "%s".' % (filename, directory), fg='yellow')
-                return
-            break
-    else:
-        data_files.append((directory, [filename]))
+                CONFIG.data_files.append((directory, [filename]))
+                click.secho('Added "%s" in "%s".' % (filename, directory), fg='green')
 
-    CONFIG.__save__()
-    click.secho('Added "%s" in "%s".' % (filename, directory), fg='green')
 
 @add.command('pkg-data')
-@click.argument('filename')
-def add_pkg_data(filename):
-    pass
+@click.argument('package')
+@click.argument('patern')
+def add_pkg_data(package, patern):
+
+    if package not in CONFIG.packages:
+        click.secho("The package %s is not in the package list.", fg='yellow')
+        click.confirm("Do you want to add it to the package list ?", abort=True)
+        run('man add package %s' % package)
+
+    pkg_data = CONFIG.package_data
+    for filename in glob.glob(patern):
+
+        if package in pkg_data:
+            if filename in pkg_data[package]:
+                click.secho('The file "%s" was already included in the package "%s".' % (filename, package), fg='yellow')
+                continue
+            pkg_data[package].append(filename)
+        else:
+            pkg_data[package] = [filename]
+
+        click.secho('Added file "%s" in package "%s".' % (filename, package), fg='green')
+
+# ✓
+@add.command('pkg')
+@click.argument('pkg-dir')
+def add_pkg(pkg_dir: str):
+    """
+    Registers a package.
+
+    A package is somthing people will be import by doing `import mypackage` or
+    `import mypackage.mysubpackage`. They must have a __init__.py file.
+
+    Examples:
+
+        man add pkg mypackage
+
+        man add pkg mypackage/mysubpackage
+    """
+
+    pkg_dir = pkg_dir.replace('\\', '/')
+    parts = [part for part in pkg_dir.split('/') if part]  # thus removing thinks like final slash...
+    pkg_name = '.'.join(parts)
+
+    if pkg_name in CONFIG.packages:
+        click.secho('The package %s is already in the packages list.' % pkg_dir, fg='yellow')
+        return
+
+    if not all(part.isidentifier() for part in parts):
+        click.secho('The name "%s" is not a valid package name or path.' % pkg_dir, fg='red')
+        return
+
+    new_pkg = False
+    if not os.path.isdir(pkg_dir):  # dir + exists
+        click.secho('It seems there is no directory matching your package path', fg='yellow')
+        if not click.confirm('Do you want to create the package %s ?' % pkg_dir, default=True):
+            return
+        # creating dir
+        os.makedirs(pkg_dir, exist_ok=True)
+        click.secho('Package created !', fg='green')
+        new_pkg = True
+
+    if new_pkg or not os.path.exists(os.path.join(pkg_dir, '__init__.py')):
+        if not new_pkg:
+            click.secho('The package is missing an __init__.py.', fg='yellow')
+        if new_pkg or click.confirm('Do you want to add one ?', default=True):
+            # creating __init__.py
+            with open(os.path.join(pkg_dir, '__init__.py'), 'w') as f:
+                f.write('"""\nPackage %s\n"""' % pkg_name)
+            click.secho('Added __init__.py in %s' % pkg_dir, fg='green')
+
+    CONFIG.packages.append(pkg_name)
+    click.secho('The package %s was added to the package list.' % pkg_name, fg='green')
 
 
 if __name__ == '__main__':
-    man()
+    with CONFIG:
+        man()
