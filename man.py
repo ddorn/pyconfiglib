@@ -4,9 +4,11 @@ import subprocess
 import click
 
 from setup import get_version, save_version
+import manconfig
 
 TYPES = ['major', 'minor', 'patch']
 TEST = False
+CONFIG = manconfig.Config()
 
 
 def run(cmd, test=False):
@@ -25,6 +27,7 @@ def run(cmd, test=False):
 def man(test):
     global TEST
     TEST = test
+
 
 @man.command()
 @click.argument('importance', type=click.Choice(TYPES))
@@ -97,24 +100,45 @@ def release(importance, message, test):
         # We do not want to increase the version number at each test
         revert_version()
 
+
 @man.group()
 def add():
     pass
 
-@add.command()
+
+@add.command(name='dep')
 @click.argument('lib')
-def dep(lib):
+def add_dep(lib):
     import importlib
     modul = importlib.import_module(lib)
     print(f'{lib}=={modul.__version__}')
 
-@add.command()
+
+@add.command('file')
 @click.argument('filename')
-def file(filename):
-    dir = os.path.dirname(filename) or '.'
-    file = os.path.split(filename)[-1]
-    print(f'dir: {dir}')
-    print(f'file: {file}')
+def add_file(filename):
+    filename = os.path.relpath(filename, os.path.dirname(__file__))
+    directory = os.path.dirname(filename)
+
+    print(f'dir: {directory}')
+    print(f'file: {filename}')
+
+    data_files = CONFIG.data_files
+    for i, (direc, files) in enumerate(data_files):
+        if direc == directory:
+            if filename not in files:
+                files.append(filename)
+            break
+    else:
+        data_files.append((directory, [filename]))
+
+    CONFIG.__save__()
+
+@add.command('pkg-data')
+@click.argument('filename')
+def add_pkg_data(filename):
+    pass
+
 
 if __name__ == '__main__':
     man()
