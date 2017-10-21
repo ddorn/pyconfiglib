@@ -120,19 +120,20 @@ def add_file(filename):
     filename = os.path.relpath(filename, os.path.dirname(__file__))
     directory = os.path.dirname(filename)
 
-    print(f'dir: {directory}')
-    print(f'file: {filename}')
-
     data_files = CONFIG.data_files
     for i, (direc, files) in enumerate(data_files):
         if direc == directory:
             if filename not in files:
                 files.append(filename)
+            else:
+                click.secho('The file "%s" was already included in "%s".' % (filename, directory), fg='yellow')
+                return
             break
     else:
         data_files.append((directory, [filename]))
 
     CONFIG.__save__()
+    click.secho('Added "%s" in "%s".' % (filename, directory), fg='green')
 
 @add.command('pkg-data')
 @click.argument('filename')
