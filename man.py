@@ -14,46 +14,30 @@ TYPES = ['major', 'minor', 'patch']
 TEST = False
 
 
+def staticmethod(func):
+    return func
+
+def pass_config(func):
+    def inner(*args, **kwargs):
+        with Config() as config:
+            return func(config, *args, **kwargs)
+    return inner
+
+def run(cmd: str, test=False):
+    click.secho('$ ', fg='green', bold=1, nl=0)
+    click.secho(cmd, fg='cyan', bold=1)
+
+    # if cmd.startswith('man '):
+    #     cmd = cmd.replace('man', 'python ' + __file__, 1)
+
+    if not test:
+        process = subprocess.Popen(cmd)
+        out, err = process.communicate()
+        return process.returncode
+    return 0
 
 
-CONFIG = Config()
-
-
-def copy_template(FORMATERS: Config, dir):
-    DIR = os.path.abspath(os.path.dirname(__file__))
-    LIBTEMPLATE_DIR = os.path.join(DIR, 'libtemplate')
-    LIB_DIR = os.path.abspath(os.path.join(dir, FORMATERS.libname))
-
-    # copy all the lib template formating with the given data
-    for directory, subdirs, files in os.walk(LIBTEMPLATE_DIR):
-
-        dest_directory = directory[len(LIBTEMPLATE_DIR) + 1:].format(**FORMATERS.__dict__)
-        dest_directory = os.path.join(LIB_DIR, dest_directory)
-
-        click.secho('Creating directory %s' % dest_directory, fg='yellow')
-        os.mkdir(dest_directory)
-
-        for file in files:
-            template_name = os.path.join(directory, file)
-            out_name = os.path.join(dest_directory, file)
-
-            click.echo('Creating file      %s' % out_name)
-            with open(template_name) as f:
-                text = f.read()
-
-            try:
-                text = text.format(**FORMATERS.__dict__)
-            except Exception as e:
-                print(directory, file)
-                print(FORMATERS.__dict__)
-                print(e, e.args, e.__traceback__, file=sys.stderr)
-                raise
-
-            with open(out_name, 'w') as f:
-                f.write(text)
-
-
-def whats_next(FORMATERS):
+def whats_next(FORMATERS: Config):
     import functools
     s = click.style
     code = functools.partial(s, fg='green')
@@ -95,18 +79,38 @@ def whats_next(FORMATERS):
         webbrowser.open('https://travis-ci.org/profile/%s' % FORMATERS.github_username)
 
 
-def run(cmd: str, test=False):
-    click.secho('$ ', fg='green', bold=1, nl=0)
-    click.secho(cmd, fg='cyan', bold=1)
+def copy_template(FORMATERS: Config, dir):
+    DIR = os.path.abspath(os.path.dirname(__file__))
+    LIBTEMPLATE_DIR = os.path.join(DIR, 'libtemplate')
+    LIB_DIR = os.path.abspath(os.path.join(dir, FORMATERS.libname))
 
-    # if cmd.startswith('man '):
-    #     cmd = cmd.replace('man', 'python ' + __file__, 1)
+    # copy all the lib template formating with the given data
+    for directory, subdirs, files in os.walk(LIBTEMPLATE_DIR):
 
-    if not test:
-        process = subprocess.Popen(cmd)
-        out, err = process.communicate()
-        return process.returncode
-    return 0
+        dest_directory = directory[len(LIBTEMPLATE_DIR) + 1:].format(**FORMATERS.__dict__)
+        dest_directory = os.path.join(LIB_DIR, dest_directory)
+
+        click.secho('Creating directory %s' % dest_directory, fg='yellow')
+        os.mkdir(dest_directory)
+
+        for file in files:
+            template_name = os.path.join(directory, file)
+            out_name = os.path.join(dest_directory, file)
+
+            click.echo('Creating file      %s' % out_name)
+            with open(template_name) as f:
+                text = f.read()
+
+            try:
+                text = text.format(**FORMATERS.__dict__)
+            except Exception as e:
+                print(directory, file)
+                print(FORMATERS.__dict__)
+                print(e, e.args, e.__traceback__, file=sys.stderr)
+                raise
+
+            with open(out_name, 'w') as f:
+                f.write(text)
 
 
 @click.group()
@@ -121,7 +125,8 @@ def man(test):
 @click.argument('importance', type=click.Choice(TYPES))
 @click.argument('message', nargs=-1)
 @click.option('--test', is_flag=True)
-def release(importance, message, test):
+@pass_config
+def release(config, importance, message, test):
     """Deploy a project: update version, add tag, and push."""
 
     global TEST
@@ -161,7 +166,7 @@ def release(importance, message, test):
     click.echo('Readme converted.')
 
     # uninstall the previous version because the test imports it :/
-    run('pip uninstall %s --yes' % CONFIG.libname)
+    run('pip uninstall %s --yes' % config.libname)
 
     # make sure it passes the tests
     if run('pytest test') != 0:
@@ -206,37 +211,37 @@ def release(importance, message, test):
 def config(args):
     sys.argv[1:] = args
     configlib.update_config(Config)
-    CONFIG.__load__()
 
 
 @man.command()
 @click.argument('dir', default='.')
+@pass_config
 def new_lib(dir):
-    CONFIG.libname = click.prompt('Name of your library')
-    CONFIG.description = click.prompt('Short description')
-    CONFIG.fullname = click.prompt('Full name', default=CONFIG.fullname)
-    CONFIG.email = click.prompt('E-Mail', default=CONFIG.email)
-    CONFIG.github_username = click.prompt("Github username", default=CONFIG.github_username)
-    CONFIG.pypi_username = click.prompt('PyPi username', default=CONFIG.pypi_username)
-    CONFIG.__save__()
+
+    config.libname = click.prompt('Name of your library')
+    config.description = click.prompt('Short description')
+    config.fullname = click.prompt('Full name', default=config.fullname)
+    config.email = click.prompt('E-Mail', default=config.email)
+    config.github_username = click.prompt("Github username", default=config.github_username)
+    config.pypi_username = click.prompt('PyPi username', default=config.pypi_username)
 
     try:
-        copy_template(CONFIG, dir)
+        copy_template(config, dir)
     except Exception as e:
         print(repr(e))
         click.echo('Something went wrong.')
-        if click.confirm('Do you want to delete the directory %s' % CONFIG.libname):
-            run('rm -rf %s' % CONFIG.libname)
+        if click.confirm('Do you want to delete the directory %s' % config.libname):
+            run('rm -rf %s' % config.libname)
         return
 
-    LIB_DIR = os.path.abspath(os.path.join(dir, CONFIG.libname))
-    run('cd %s' % CONFIG.libname, True)
+    LIB_DIR = os.path.abspath(os.path.join(dir, config.libname))
+    run('cd %s' % config.libname, True)
     os.chdir(LIB_DIR)
     click.echo(os.path.abspath(os.curdir))
 
     # initialize man
-    run('py man.py add pkg %s' % CONFIG.libname)
-    run('py man.py add pkg-data %s/version' % CONFIG.libname)
+    run('py man.py add pkg %s' % config.libname)
+    run('py man.py add pkg-data %s/version' % config.libname)
     run('py man.py add file manconfig.*')
 
     # initilize git repo
@@ -245,15 +250,11 @@ def new_lib(dir):
     run('git commit -m "initial commit"')
     run(
         """curl -u '{github_username}' https://api.github.com/user/repos -d '{open}"name":"{libname}", "description": "{description}"{close}' """.format(
-            **CONFIG.__dict__, open='{', close='}'))
-    run('git remote add origin https://github.com/{github_username}/{libname}'.format(**CONFIG.__dict__))
+            **config.__dict__, open='{', close='}'))
+    run('git remote add origin https://github.com/{github_username}/{libname}'.format(**config.__dict__))
     run('git push origin master')
 
-    whats_next(CONFIG)
-
-
-def staticmethod(func):
-    return func
+    whats_next(config)
 
 
 class MyCLI(click.MultiCommand):
@@ -277,8 +278,9 @@ class AddCli(MyCLI):
     @click.command()
     @click.argument('lib')
     @click.argument('version', default='')
+    @pass_config
     @staticmethod
-    def dependancy(lib, version):
+    def dependancy(config, lib, version):
         import importlib
         try:
             modul = importlib.import_module(lib)
@@ -299,19 +301,20 @@ class AddCli(MyCLI):
 
         dep = '%s%s' % (lib, version)
 
-        if dep in CONFIG.dependancies:
+        if dep in config.dependancies:
             click.secho('%s is already in the dependancies' % dep, fg='red')  # ✓
             return
 
-        CONFIG.dependancies.append(dep)
+        config.dependancies.append(dep)
         with open('requirements.txt', 'a') as f:
             f.write(dep)
         click.secho('Added dependancy %s' % dep, fg='green')
 
     @click.command()
     @click.argument('patern')
+    @pass_config
     @staticmethod
-    def file(patern):
+    def file(config, patern):
         """
         Add a non code file to the data_files of setup.py.
         You can provide a glob patern and all the matchnig files will be added.
@@ -329,7 +332,7 @@ class AddCli(MyCLI):
             directory = '' if directory == '.' else directory
 
             # it seems that package_data doesn't work for files inside packages, so we check if this file is in a pkg
-            for pkg in CONFIG.packages:
+            for pkg in config.packages:
                 if directory.startswith(pkg):
                     # If it is, ask if we use pkg insead
                     click.echo('This file is included in the package ' + click.style(pkg, fg='yellow') + '.')
@@ -340,7 +343,7 @@ class AddCli(MyCLI):
                     break
             else:
                 # we add the file if it wasn't in a pkg
-                for i, (direc, files) in enumerate(CONFIG.data_files):
+                for i, (direc, files) in enumerate(config.data_files):
                     if direc == directory:
                         if filename not in files:
                             files.append(filename)
@@ -350,18 +353,19 @@ class AddCli(MyCLI):
                                         fg='yellow')
                         break
                 else:
-                    CONFIG.data_files.append((directory, [filename]))
+                    config.data_files.append((directory, [filename]))
                     click.secho('Added "%s" in "%s".' % (filename, directory), fg='green')
 
     @click.command()
     @click.argument('patern')
+    @pass_config
     @staticmethod
-    def pkgdata(patern):
+    def pkgdata(config, patern):
 
         # try to find which package it's in. We start we the longest names in case
         # it is in a sub package, we want to add it in the subpackage
         # I don't really know if it matters but well
-        for package in sorted(CONFIG.packages, key=len, reverse=True):
+        for package in sorted(config.packages, key=len, reverse=True):
             if patern.startswith(package):
                 break
         else:
@@ -371,7 +375,7 @@ class AddCli(MyCLI):
             return
 
         patern = patern[len(package) + 1:]  # remove the package
-        pkg_data = CONFIG.package_data
+        pkg_data = config.package_data
         if package in pkg_data:
             if patern in pkg_data[package]:
                 click.secho('The patern "%s" was already included in the package "%s".' % (patern, package),
@@ -404,7 +408,7 @@ class AddCli(MyCLI):
         parts = [part for part in pkg_dir.split('/') if part]  # thus removing thinks like final slash...
         pkg_name = '.'.join(parts)
 
-        if pkg_name in CONFIG.packages:
+        if pkg_name in config.packages:
             click.secho('The package %s is already in the packages list.' % pkg_dir, fg='yellow')
             return
 
@@ -431,7 +435,7 @@ class AddCli(MyCLI):
                     f.write('"""\nPackage %s\n"""' % pkg_name)
                 click.secho('Added __init__.py in %s' % pkg_dir, fg='green')
 
-        CONFIG.packages.append(pkg_name)
+        config.packages.append(pkg_name)
         click.secho('The package %s was added to the package list.' % pkg_name, fg='green')
 
 
@@ -450,5 +454,4 @@ def remove():
 
 
 if __name__ == '__main__':
-    with CONFIG:
-        man()
+    man()
