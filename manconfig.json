@@ -12,6 +12,10 @@
         "click==6.*",
         "pygments==2.*"
     ],
+    "email": "diego.dorn@free.fr",
+    "fullname": "Diego Dorn",
+    "github_username": "ddorn",
+    "libname": "configlib",
     "package_data": {
         "configlib": [
             "version"
@@ -19,5 +23,6 @@
     },
     "packages": [
         "configlib"
-    ]
+    ],
+    "pypi_username": "ddorn"
 }
