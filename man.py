@@ -21,6 +21,8 @@ def pass_config(func):
     def inner(*args, **kwargs):
         with Config() as config:
             return func(config, *args, **kwargs)
+    inner.__name__ = func.__name__
+    inner.__doc__ = func.__doc__
     return inner
 
 def run(cmd: str, test=False):
@@ -166,7 +168,7 @@ def release(config, importance, message, test):
     click.echo('Readme converted.')
 
     # uninstall the previous version because the test imports it :/
-    run('pip uninstall %s --yes' % config.libname)
+    run('pip uninstall pyconfiglib --yes' % config.libname)
 
     # make sure it passes the tests
     if run('pytest test') != 0:
