@@ -168,7 +168,7 @@ def release(config, importance, message, test):
     click.echo('Readme converted.')
 
     # uninstall the previous version because the test imports it :/
-    run('pip uninstall pyconfiglib --yes' % config.libname)
+    run('pip uninstall pyconfiglib --yes')
 
     # make sure it passes the tests
     if run('pytest test') != 0:
