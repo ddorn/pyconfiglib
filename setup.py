@@ -1,23 +1,6 @@
 import glob
-import os
 
 from setuptools import setup
-
-VERSION_FILE = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'configlib', 'version')
-
-
-def save_version(major, minor, patch):
-    version = '%d.%d.%d' % (major, minor, patch)
-    with open(VERSION_FILE, 'w') as f:
-        f.write(version)
-
-    with open('readme.md') as f:
-        readme = f.readlines()
-
-    readme[0] = '[![Build Status](https://travis-ci.org/ddorn/configlib.svg?branch=v%s)](https://travis-ci.org/ddorn/configlib)\n' % version
-
-    with open('readme.md', 'w') as f:
-        f.writelines(readme)
 
 if __name__ == '__main__':
 
@@ -27,7 +10,7 @@ if __name__ == '__main__':
     except FileNotFoundError:
         long_description = 'Configuration for python made easy'
 
-    from manconfig import Config
+    from man.manconfig import Config
     config = Config()
 
     setup(
