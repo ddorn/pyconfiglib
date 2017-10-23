@@ -6,11 +6,6 @@ from setuptools import setup
 VERSION_FILE = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'configlib', 'version')
 
 
-def get_version():
-    with open(VERSION_FILE) as f:
-        return f.read()
-
-
 def save_version(major, minor, patch):
     version = '%d.%d.%d' % (major, minor, patch)
     with open(VERSION_FILE, 'w') as f:
@@ -37,7 +32,7 @@ if __name__ == '__main__':
 
     setup(
         name='pyconfiglib',
-        version=get_version(),
+        version=config.version,
         packages=config.packages,
         url='https://github.com/ddorn/configlib',
         license='MIT',

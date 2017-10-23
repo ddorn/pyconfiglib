@@ -1,13 +1,5 @@
 {
-    "data_files": [
-        [
-            "",
-            [
-                "manconfig.json",
-                "manconfig.py"
-            ]
-        ]
-    ],
+    "data_files": [],
     "dependancies": [
         "click==6.*",
         "pygments==2.*"
@@ -16,13 +8,10 @@
     "fullname": "Diego Dorn",
     "github_username": "ddorn",
     "libname": "configlib",
-    "package_data": {
-        "configlib": [
-            "version"
-        ]
-    },
+    "package_data": {},
     "packages": [
         "configlib"
     ],
-    "pypi_username": "ddorn"
+    "pypi_username": "ddorn",
+    "version": "1.1.13"
 }
