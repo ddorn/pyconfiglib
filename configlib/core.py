@@ -129,8 +129,15 @@ def prompt_update_all(config: 'Config'):
         config[field] = value
 
 
-# ✓
-class Config(object):
+class Singleton(object):
+  _instances = {}
+  def __new__(class_, *args, **kwargs):
+    if class_ not in class_._instances:
+        class_._instances[class_] = super(Singleton, class_).__new__(class_, *args, **kwargs)
+    return class_._instances[class_]
+
+
+class BaseConfig(object):
     # the path where the configuration is stored. The directory must exist
     __config_path__ = 'config.json'
 
@@ -415,7 +422,12 @@ class Config(object):
         return getattr(self, '__{field}_hint__'.format(field=field), field)
 
 
-class SubConfig(Config):
+class Config(BaseConfig, Singleton):
+    # We make the config singletons because everybody wants to have the same config everywhere in his code
+    # but not the subconfig, as we can have more than one of each in each Config
+    pass
+
+class SubConfig(BaseConfig):
     # noinspection PyMissingConstructor
     def __init__(self, dct=None):
         dct = dct or {}
