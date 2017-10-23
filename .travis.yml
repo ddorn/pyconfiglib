@@ -1,10 +1,9 @@
 language: python
 python:
-  - '3.6'
+- '3.6'
 script:
-  - pytest
+- pytest
 deploy:
-# real pypi
 - provider: pypi
   user: ddorn
   password:
@@ -12,14 +11,7 @@ deploy:
   on:
     condition: $TRAVIS_PYTHON_VERSION = "3.6"
     tags: true
-# I need to find a way to change the version only for testpypi
-## test pypi
-#- provider: pypi
-#  server: https://testpypi.python.org/pypi
-#  user: diego
-#  password:
-#    secure: QzpmVzcoWeUnSRdd0e3aBBkmowUNbhuOkNnqWXd8UlfFJmzF66/w8jw/GipQ621XcbUTZ9KQ1C0qwC/9iPtLRjIQa4cBNzSS+13Se7ymb1bhwcLK+GSuCCzkhf8q95qeeg0i0bLG2DuGP+asbpwVFF1sMgm1MXlA2lPy1nCP/7pbd9BEwxVdrja6zflBogIllVvGSkL+FvpqRh3lH35szFBsfOXVf9IpgdFJBP4pToRMnQaKrPxclF1NG619IgsJ3tmIZRSYgBnCjDclfMM1Kk+Ym2Vc3Uk+m+LjEicOxezT4UZD6/zaHDkREXSJFDFqYiXOtvTY3U1wCOUyHFENkkA/W8ckMtUmCBc7WIJPzV3/3+7yD+6vKVWXg0TWFrkk8Fj9z07ZCY1aiEA5XG3+kJrzLLr7nQSrsQBSpB4qO1qkuf2Erw9dcLuO5a0he5MkCpa+2UZlrmaMn8ITRD+ExU5QjuPXvjKPXrVsnTsWxxNkqQYNeRqwAniKKvNY+OjDd+JKulEepYIz68SE4jiaYK0aYxNEW5bXo9rSfTgRCJ8T/H/yIGw035cVlQlXqpOCo0NLsCqF+qm1fiS5/9AAoyaO37ZFUpHoR1SN52TzDwe8lQRu2VsRwiI0MtMX3FYMEmcohE468UvbRuXFTrYHHx+oURKFlBu9qB1Gl0b1qa0=
-#  on:
-#    branch: master
-#    tags: false
-#    condition: $TRAVIS_PYTHON_VERSION = "3.6"
+notifications:
+  slack:
+    - secure: lWjQvo11qvNQWvi8svN2YJbOmCramHNkZ+HkVrwtgXESEdDkWc1ivdfpkDaAtZtUXD62HT/j+1MiTBnFTDO4BhaPjb5jKG32BGVLAz02CywAqK6xtl77AP8+bKr6Q0h7GF9NIAZTjjmQ8EyuLvXWNMXBY8OcGClo15+xeUSaPUhiKmqpqNWPfJD8q7ymbBYl6rHUrERreQ6F4cZL+l1Lyfr34xH9Y2VA+sYvVzqdNh8DYa5q5ODg3VpUFxpehiElclqV3zhKGg39CG8cmq7cltjV1nFlnionFqpqTAQCrnoLIBmFxHAyAE6MJXqOH0KD9fhOwXaCsQfCag+j/1mSryIUtyOcKFaEWf/E3z9qQAG5zM2xosGOgmnZman+aWbOPWB4mAjgeT/K94oNrX2rmUXx4fK5DE7f56EY0xtF4ljkJ5NxfwKCb/p2aNmvqxxb381/jsOSIl5Xi0hf46UcNkZ/95rEdGUS9j+dEW48Fdl2+YNzwOFP30qHJ3LgSRH9pZ4NMAT/VgE/J5CE2GbTHPUI5QAWAEiBZv3r4Q513vnNoHkTiy0W1SaYbNwwovtFOt9JyPSiLmHs7w2SapRITFEoLJv7w+fYMENOUHpsD0EoJjDF4cIc8NjSL+PBFag0cOaLSMq17vNA+hizbe/Sxt5hW4hWzGbktW2nFvhYv1s=
+    - secure: NIGmf5zeMOA4Oa5sIO3IkRAfktbzdw8l3sOWbqle13Fs2d9BbvpPZxE6QJ5zK8yXzYHq6qrKYssZaB5t8UkSJ00oPdgw/dhCsxFqQ5VhM1J+9ccQvT34/Dw7t99pv6/64rINuIJHC81k38xuvAEQAKsk+zVjRxhWsMQFKAjh9gIrJ71L/s4nbQznj8qCjnOaNw43pXCvScwntM3k4ekL8S/L5Js1ZrIWLtrZ+uc5CzsMQfKVFO+nEaQ+CuusK8wxfC3xmk3ngCDOZm0gLuDd9ofbcxRx5zqGCQkR9Nwms2GsFP38gpcAgv977FmE5rTNqy+Z9iuo9g6gpCqpj1eSuxR9cz7+TEKZBFUT7latyYdbt2Eo/cEiREH1mTeVnQh74VSNL9f1AzDcapuZERJm6lo4q677Bolb+z5pXRX3h5IQUBy/mQjox0MLUwNpid1iyhPADy8kxGojYg5sUEWLjoP8tTXAdURoyiREtTozNDI+bCat+Z6R/sFe1xfs/glzaxabxDWhoX7w3BZMal9UvD1RTudFWWGDXMNILxmYGNw9IYAq1dUUGcctdlCCrvgvaNQRBRDVayfL+gb+MpQkthuFSXISdYJyjpmkhfXWqUZvINUWKW8OTK0IHGqK0JgqtWRxecQGaK2HXqdkbRaqkf3NBvkZOj/CnBn9uwFvLiA=
