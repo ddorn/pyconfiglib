@@ -129,12 +129,15 @@ def prompt_update_all(config: 'Config'):
         config[field] = value
 
 
-class Singleton(object):
-  _instances = {}
-  def __new__(class_, *args, **kwargs):
-    if class_ not in class_._instances:
-        class_._instances[class_] = super(Singleton, class_).__new__(class_, *args, **kwargs)
-    return class_._instances[class_]
+class Singleton(type):
+    def __init__(cls, name, bases, dict):
+        super(Singleton, cls).__init__(name, bases, dict)
+        cls.__instance__ = None
+
+    def __call__(cls, *args, **kw):
+        if cls.__instance__ is None:
+            cls.__instance__ = super(Singleton, cls).__call__(*args, **kw)
+        return cls.__instance__
 
 
 class BaseConfig(object):
@@ -422,10 +425,11 @@ class BaseConfig(object):
         return getattr(self, '__{field}_hint__'.format(field=field), field)
 
 
-class Config(BaseConfig, Singleton):
+class Config(BaseConfig, metaclass=Singleton):
     # We make the config singletons because everybody wants to have the same config everywhere in his code
     # but not the subconfig, as we can have more than one of each in each Config
     pass
+
 
 class SubConfig(BaseConfig):
     # noinspection PyMissingConstructor
