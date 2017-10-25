@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/ddorn/pyconfiglib.svg?branch=v1.2.4)](https://travis-ci.org/ddorn/pyconfiglib)
+[![Build Status](https://travis-ci.org/ddorn/pyconfiglib.svg?branch=v1.2.5)](https://travis-ci.org/ddorn/pyconfiglib)
 
 # configlib
 

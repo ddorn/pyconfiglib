@@ -95,5 +95,5 @@ the stdlib.
 
     pip install pyreadline
 
-.. |Build Status| image:: https://travis-ci.org/ddorn/pyconfiglib.svg?branch=v1.2.4
+.. |Build Status| image:: https://travis-ci.org/ddorn/pyconfiglib.svg?branch=v1.2.5
    :target: https://travis-ci.org/ddorn/pyconfiglib
