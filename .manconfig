@@ -4,15 +4,16 @@
         "click==6.*",
         "pygments==2.*"
     ],
-    "description": "",
+    "description": "Configuration for python made easy",
     "email": "diego.dorn@free.fr",
     "fullname": "Diego Dorn",
     "github_username": "ddorn",
-    "libname": "configlib",
+    "libname": "pyconfiglib",
     "package_data": {},
     "packages": [
         "configlib"
     ],
     "pypi_username": "ddorn",
+    "scripts": [],
     "version": "1.2.2"
 }
