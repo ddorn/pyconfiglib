@@ -149,12 +149,23 @@ Example:
 ### Sub-Configurations
 *Documentation needs to be done*
 
-###Install
 
-There are a few requirements that you can download with pip:
+### Other important stuff
 
-    pip install click pygments
-    
-For windows users, you will need pyreadline because readline isn't in the stdlib.
+#### Save emplacement
 
-    pip install pyreadline
+To define where a configuration is saved, set the value of `__config_path__` to the path you want. 
+It is better to to specify absolute path relative to the current `__file__` like this one:
+
+    __config_path__ = os.path.join(os.path.dirname(__file__), '.config')
+
+Because the current directory may not be the one of your code, because a script can be called from everywhere.
+
+#### Allow user interface
+
+At the end of your config's file, you can add: 
+
+    if __name__ == '__main__':
+        configlib.update_config(Config)
+
+So running `python config.py [OPTIONS]` will trigger the command line interface described in the first part.
