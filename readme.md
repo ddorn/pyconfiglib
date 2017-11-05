@@ -91,13 +91,13 @@ _In the following, `MyType` designate your custom type, `StoredType` and is that
 Say that you want only positives intergers for the age. You can create a `PositiveIntegerType`.   
 
 A subclass of `ConfigType` must define 4 things:
-    - a `name`. This the name of the type, who is supposed to be more gentle than the class name, it will be 
+ - a `name`. This the name of the type, who is supposed to be more gentle than the class name, it will be 
     shown to the user.
-    - a `load(value: Union[StoredType, str]) -> MyType` method. This method will be called when loading the configuration, 
+ - a `load(value: Union[StoredType, str]) -> MyType` method. This method will be called when loading the configuration, 
     from the json file and on user input. This must raise a `ValueError` when you can't load the value.
-    - and a `save(value: MyType) -> StoredType` method. This is used to convert from your type to something json can handle
+ - and a `save(value: MyType) -> StoredType` method. This is used to convert from your type to something json can handle
     when the configuration is saved.
-    - an `is_valid(value: MyType) -> bool` method. This is used every times the field is set, and should return True is 
+ - an `is_valid(value: MyType) -> bool` method. This is used every times the field is set, and should return True is 
     the given value is a valid data for the field. Usually, it can just be `return isinstance(value, MyType)`
     
 

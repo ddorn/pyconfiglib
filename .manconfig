@@ -3,7 +3,8 @@
     "data_files": [],
     "dependancies": [
         "click==6.*",
-        "pygments==2.*"
+        "pygments==2.*",
+        "pyreadline==2.*"
     ],
     "description": "Configuration for python made easy",
     "email": "diego.dorn@free.fr",
