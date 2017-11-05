@@ -1,4 +1,5 @@
 {
+    "classifiers": [],
     "data_files": [],
     "dependancies": [
         "click==6.*",
@@ -8,6 +9,7 @@
     "email": "diego.dorn@free.fr",
     "fullname": "Diego Dorn",
     "github_username": "ddorn",
+    "keywords": "",
     "libname": "pyconfiglib",
     "package_data": {},
     "packages": [
