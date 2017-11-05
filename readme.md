@@ -67,14 +67,13 @@ If the data of a field is `int`, `float`, `str` or `bool`, you do not have to pr
 You can precise a type by adding a `__[FIELD-NAME]_type__ = ...` class attribute.
 
 If you want an other type, there are two options:
- - You want an other builtin type, like `list`, `dict` or `tuple`, then you need to precise the type you want:
+- You want an other builtin type, like `list`, `dict` or `tuple`, then you need to precise the type you want:
      
-     class Config(configlib.Config):
-     
-        ...
+        class Config(configlib.Config):
+            ...
         
-        pet_names = ['didi', 'bibi', 'lili']
-        __pet_names_type__ = configlib.Python(dict)
+            pet_names = ['didi', 'bibi', 'lili']
+            __pet_names_type__ = configlib.Python(dict)
 
    However:
     - you don't have to, but this adds the possibility for the user to enter the value he wants when prompted.
@@ -86,7 +85,7 @@ If you want an other type, there are two options:
  
 ##### Custom Types
 
-_In the following, `MyType` designate your custom type, `StoredType`, is that you stores in the json which is ine of 
+_In the following, `MyType` designate your custom type, `StoredType` and is that you stores in the json which is one of 
  `bool`, `int`, `float`, `list`, `dict` or  `str` (those are the only types json supports). Usually it will be `str` (`or list`)_
 
 Say that you want only positives intergers for the age. You can create a `PositiveIntegerType`.   
@@ -129,7 +128,6 @@ A subclass of `ConfigType` must define 4 things:
 And then in your `Config` class add:
 
     class Config(configlib.Config):
-    
         ...
         
         __age_type__ = PositiveIntegerType()
@@ -137,7 +135,16 @@ And then in your `Config` class add:
 **NOTE:** Don't forget to instanciate `ConfigType`.
 
 #### Hints
-*Documentation needs to be done*
+
+You can also add hints, that will be displayed when the user is prompted for a field or when the list is displayed.
+Hints are specified in the same way as the types, by adding a `__[FIELD-NAME]_hint__` class attribute.
+
+Example:
+
+    class Config(configlib.Config):
+        ...
+
+        __age_hint__ = 'Your age in days'
 
 ### Sub-Configurations
 *Documentation needs to be done*
