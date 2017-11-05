@@ -12,7 +12,7 @@ class WallColors(configlib.SubConfig):
 
     west = (0, 255, 0)
     __west_type__ = conftypes.color
-    __west_hint__ = 'The color of the western wall, where the cow bows.'
+    __west_hint__ = 'The color of the western wall, where the cow boys.'
 
     nord = (0, 0, 255)
     __nord_type__ = conftypes.color
