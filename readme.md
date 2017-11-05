@@ -103,7 +103,7 @@ A subclass of `ConfigType` must define 4 things:
     
 
 ###### Example
-
+    
     class PositiveIntegerType(configlib.ConfigType):
         
         name = natural number
@@ -139,9 +139,8 @@ And then in your `Config` class add:
 #### Hints
 *Documentation needs to be done*
 
-### More advanced configuration
+### Sub-Configurations
 *Documentation needs to be done*
-
 
 ###Install
 
