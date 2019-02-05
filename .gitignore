@@ -6,5 +6,6 @@ dist/
 build/
 *.egg-info/
 .cache/
+.venv/
 configlib/assets/
 assets/config.json
