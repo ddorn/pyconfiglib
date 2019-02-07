@@ -2,7 +2,7 @@
 
 # configlib
 
-A bit desesperate by the lack of good and easy to use configuration libraries in python, 
+A bit desperate by the lack of good and easy to use configuration libraries in python, 
 I decided to write this one. The two main goals are:
 - Make it easy for the you to describe the data you use to configurate your project and be able 
 to save and load it in one line
@@ -57,7 +57,11 @@ Example:
         surname = 'Jo'
         age = 42
 
-**NOTE:** fields names can not both start and end with two underscores (`__`).
+**NOTE:** fields names can not start nor end with an underscore (`_`), 
+so we can have attributes not tracked by the config.
+
+**NOTE:** no field can be set to a callable object. 
+This is a deliberate choice to allow defining functions in the class' body.
 
 #### Types
 
@@ -132,7 +136,7 @@ And then in your `Config` class add:
         
         __age_type__ = PositiveIntegerType()
 
-**NOTE:** Don't forget to instanciate `ConfigType`.
+**NOTE:** Don't forget to instantiate `ConfigType`.
 
 #### Hints
 
@@ -145,6 +149,14 @@ Example:
         ...
 
         __age_hint__ = 'Your age in days'
+
+#### Printing
+
+You can pretty print the configuration with `__show__`. 
+This will print the config and to add colors is pygments is installed.
+
+Alternatively, you can just `str()` the config to get a human readable string, 
+without any color. `repr()` returns the same string but in only one line.
 
 ### Sub-Configurations
 *Documentation needs to be done*
@@ -161,6 +173,17 @@ It is better to to specify absolute path relative to the current `__file__` like
 
 Because the current directory may not be the one of your code, because a script can be called from everywhere.
 
+#### Version checking
+
+If you make breaking changes to the configuration so that loading the current saved config would crash 
+your program (a common example is when you have a list that needs to be of a specific size, and this
+size changed), you can automatically load the default config by setting the `__version__`.
+
+If the saved `__version__` and the `__version__` defined in your code do not match, 
+the config will be reset. 
+There is actually no support to "upgrade" the config instead, 
+but you can probably do it manually depending on the issue you're facing.
+
 #### Allow user interface
 
 At the end of your config's file, you can add: 
@@ -169,3 +192,19 @@ At the end of your config's file, you can add:
         configlib.update_config(Config)
 
 So running `python config.py [OPTIONS]` will trigger the command line interface described in the first part.
+
+#### Saving configs in non-editable format
+
+Often, one wants to prevent his users from editing the configuration manually, 
+for instance in a multiplayer game where they could just give themselves a 999 damage weapon...
+Pyconfiglib let you crypt simply the configuration with `__xor_key__`. This performs a simple xor
+between the key and the config to save. It is enough to keep most people from manually editing the config,
+but wont stop the 1% of people that you do anything to edit this damn connfig. Anyway, there's nothing you 
+can do against them, except storing everything in your server. (and even there they could send the 
+right requests...)
+
+Anyway, if `__xor_key__` is set to anything else than `b''`, the default, the config will be xor-crypted
+with that given key. `__xor_key__` should be a byte string, and the bigger the better.
+
+You can override `__crypt__` and `__decrypt__` to use a different encryption algorithm. 
+They both take a single parameter, a byte string, and should return this byte string (en|de)crypted.

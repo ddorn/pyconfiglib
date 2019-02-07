@@ -47,6 +47,7 @@ import inspect
 import json
 import logging
 import os
+from itertools import cycle
 from typing import Tuple
 
 import click
@@ -79,12 +80,12 @@ TYPE_TO_CLICK_TYPE = {
 # ✓
 def is_config_field(attr: str):
     """Every string which doesn't start and end with '__' is considered to be a valid usable configuration field."""
-    return not (attr.startswith('__') and attr.endswith('__'))
+    return not (attr.startswith('_') or attr.endswith('_'))
 
 
 # ✓
 def prompt_update_all(config: 'Config'):
-    """Prompt each field of the configration to the user."""
+    """Prompt each field of the configuration to the user."""
 
     click.echo()
     click.echo('Welcome !')
@@ -113,7 +114,7 @@ def prompt_update_all(config: 'Config'):
         else:
             default = config[field]
 
-        # a too long hint is awfull
+        # a too long hint is awful
         if len(str(default)) > 14:
             default = str(default)[:10] + '...'
 
@@ -143,6 +144,8 @@ class Singleton(type):
 class BaseConfig(object):
     # the path where the configuration is stored. The directory must exist
     __config_path__ = 'config.json'
+    __version__ = 1
+    __xor_key__ = b''
 
     # ✓
     def __init__(self, strict=False):
@@ -172,15 +175,20 @@ class BaseConfig(object):
                     logging.debug('In %s the field %s has now type %s because the default is %r', cls, field,
                                   type(default), default)
 
+    def __str__(self):
+        return json.dumps(self.__get_json_dict__(), indent=4, sort_keys=True)
+
+    def __repr__(self):
+        return json.dumps(self.__get_json_dict__(), sort_keys=True)
     # ✓
     def __iter__(self):
         """Iterate over the fields, sorted."""
 
-        # the fields are all class atributes,
+        # the fields are all class attributes,
         # so they are accessible from everywhere
         keys = sorted(type(self).__dict__)
         for key in keys:
-            if is_config_field(key):
+            if is_config_field(key) and not callable(self[key]):
                 yield key
 
     def __contains__(self, item: str):
@@ -194,16 +202,26 @@ class BaseConfig(object):
         return is_config_field(item) and hasattr(self, item)
 
     def __load__(self, strict=False):
+        mode = 'rb' if self.__xor_key__ else 'r'
+
         try:
-            with open(self.__config_path__, 'r', encoding='utf-8') as f:
+            with open(self.__config_path__, mode) as f:
                 file = f.read()
             logging.info('Read %d chars from %s', len(file), self.__config_path__)
         except FileNotFoundError:
             # if no config was ever created, it's time to make one
             file = '{}'
             logging.info('Config file not found, creating empty one')
+        else:
+            if self.__xor_key__:
+                file = self.__decrypt__(file).decode()
 
         conf = json.loads(file)  # type: dict
+
+        if conf.get("__version__", self.__version__) != self.__version__:
+            logging.info("Config version mismatch (saved: %s, current: %s). Restoring default config.",
+                         conf["__version__"], self.__version__)
+            conf = {}
 
         self.__update__(conf, strict)
 
@@ -211,10 +229,16 @@ class BaseConfig(object):
     def __save__(self):
         """Save the config to __config_path__ in a json format."""
 
-        jsonstr = json.dumps(self.__get_json_dict__(), indent=4, sort_keys=True)
+        if self.__xor_key__:
+            jsonstr = json.dumps(self.__get_json_dict__()).encode()
+            jsonstr = self.__crypt__(jsonstr)
+        else:
+            jsonstr = json.dumps(self.__get_json_dict__(), indent=4, sort_keys=True)
 
         logging.info('saving %d chars at %s', len(jsonstr), self.__config_path__)
-        with open(self.__config_path__, 'w', encoding='utf-8') as f:
+
+        mode = 'wb' if self.__xor_key__ else 'w'
+        with open(self.__config_path__, mode) as f:
             f.write(jsonstr)
 
     def __get_json_dict__(self):
@@ -231,11 +255,22 @@ class BaseConfig(object):
                 else:
                     json_dict[attr] = self[attr]
 
+        json_dict["__version__"] = self.__version__
+
         return json_dict
+
+    def __crypt__(self, byte_text):
+        if self.__xor_key__:
+            key = self.__xor_key__[:2] + b'...' + self.__xor_key__[-2:]
+            logging.debug("Encryption of the config with the key %s", key)
+            byte_text = ''.join(chr(c ^ k) for c, k in zip(byte_text, cycle(self.__xor_key__))).encode()
+        return byte_text
+
+    __decrypt__ = __crypt__
 
     # ✓
     def __len__(self):
-        # we can't do len(list(self)) because list uses len when it can, causing recurtion of the death
+        # we can't do len(list(self)) because list uses len when it can, causing recursion of the death
         return sum(1 for _ in self)
 
     # ✓
@@ -246,6 +281,10 @@ class BaseConfig(object):
         :param field: needs to be an existing field
         :raise ValueError: when the value is not valid.
         """
+
+        if callable(value):
+            logging.warning('Cannot set a field to a callable object: trying to set %s to %s' % (field, value))
+            raise ValueError('Cannot set a field to a callable object: trying to set %s to %s' % (field, value))
 
         # if there is a dot in the name, we want to set an field of a subconfig
         if '.' in field:
@@ -260,7 +299,7 @@ class BaseConfig(object):
 
         if conftypes.is_valid(value, supposed_type):
             # everything is correct, we assign is directly
-            self.__setattr__(field, value)
+            object.__setattr__(self, field, value)
             logging.debug('valid')
 
 
@@ -269,7 +308,7 @@ class BaseConfig(object):
             logging.debug('try to convert the value through ConfigType')
             try:
                 value = supposed_type.load(value)
-                self.__setattr__(field, value)
+                object.__setattr__(self, field, value)
             except Exception:
                 logging.warning('fail loading %r of type %s but supposed %s', value, type(value), supposed_type)
                 raise ValueError('fail loading %r of type %s but supposed %s' % (value, type(value), supposed_type))
@@ -278,7 +317,7 @@ class BaseConfig(object):
             try:
                 logging.debug('try to convert the value throught click.ParamType')
                 value = TYPE_TO_CLICK_TYPE[supposed_type](value)
-                self.__setattr__(field, value)
+                object.__setattr__(self, field, value)
             except Exception:
                 logging.warning('fail loading %r of type %s but supposed %s', value, type(value), supposed_type)
                 raise ValueError('fail loading %s of type %s but supposed %s' % (value, type(value), supposed_type))
@@ -286,6 +325,8 @@ class BaseConfig(object):
             # it is just not good
             logging.warning('fail loading %r of type %s but supposed %s', value, type(value), supposed_type)
             raise ValueError('fail loading %s of type %s but supposed %s' % (value, type(value), supposed_type))
+
+    __setattr__ = __setitem__
 
     # ✓
     def __getitem__(self, item: str):
@@ -297,13 +338,12 @@ class BaseConfig(object):
 
     # ✓
     def __enter__(self):
-        """The context manager patern ensures that the config will be saved."""
+        """The context manager pattern ensures that the config will be saved."""
         return self
 
     # ✓
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.__save__()
-        # click.echo('\nSaved!')
 
     # ✓
     def __print_list__(self, prefix=''):
@@ -367,7 +407,7 @@ class BaseConfig(object):
         Update all the fields with the key/values in the dict.
 
         When the type is wrong, a warning is printed and the field is not updated.
-        Return the succes of settin ALL fields of the dict.
+        Return the success of setting ALL fields of the dict.
         """
 
         one_field_is_with_a_bad_type = False
@@ -375,7 +415,7 @@ class BaseConfig(object):
         for field, value in dct.items():
 
             # we update only the fields in the conf so if someone added fields in the json,
-            # they won't interfere with the already defines attributes...
+            # they won't interfere with the already defined attributes...
             # For instance, we don't want to override __load__.
 
             if field not in self:

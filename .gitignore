@@ -7,3 +7,4 @@ build/
 *.egg-info/
 .cache/
 configlib/assets/
+assets/config.json

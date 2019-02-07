@@ -5,7 +5,6 @@ from configlib import conftypes
 
 
 class WallColors(configlib.SubConfig):
-
     east = (255, 0, 0)
     __east_type__ = conftypes.color
     __east_hint__ = 'The color of the eastern wall, where the sun rises.'
@@ -17,7 +16,6 @@ class WallColors(configlib.SubConfig):
     nord = (0, 0, 255)
     __nord_type__ = conftypes.color
     __nord_hint__ = 'The color of the northern wall, where the snow falls.'
-
 
     south = (0, 0, 0)
     __south_type__ = conftypes.color
@@ -37,8 +35,10 @@ class Colors(configlib.SubConfig):
     castle = WallColors()
     __castle_hint__ = 'The colors of the walls of your castle'
 
+
 class Config(configlib.Config):
     __config_path__ = 'assets/config.json'
+    __version__ = 1
 
     age = 3
 
@@ -54,6 +54,13 @@ class Config(configlib.Config):
 
     colors = Colors()
     __colors_hint__ = 'The colors around you.'
+
+    def get_fancy_name(self):
+        if self.bald:
+            return self.name + " the Bald"
+        else:
+            return self.name + " the Hirsute"
+
 
 if __name__ == '__main__':
     configlib.update_config(Config)
