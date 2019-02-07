@@ -47,6 +47,7 @@ import inspect
 import json
 import logging
 import os
+from itertools import cycle
 from typing import Tuple
 
 import click
@@ -144,6 +145,7 @@ class BaseConfig(object):
     # the path where the configuration is stored. The directory must exist
     __config_path__ = 'config.json'
     __version__ = 1
+    __xor_key__ = b''
 
     # ✓
     def __init__(self, strict=False):
@@ -200,14 +202,19 @@ class BaseConfig(object):
         return is_config_field(item) and hasattr(self, item)
 
     def __load__(self, strict=False):
+        mode = 'rb' if self.__xor_key__ else 'r'
+
         try:
-            with open(self.__config_path__, 'r', encoding='utf-8') as f:
+            with open(self.__config_path__, mode) as f:
                 file = f.read()
             logging.info('Read %d chars from %s', len(file), self.__config_path__)
         except FileNotFoundError:
             # if no config was ever created, it's time to make one
             file = '{}'
             logging.info('Config file not found, creating empty one')
+        else:
+            if self.__xor_key__:
+                file = self.__decrypt__(file).decode()
 
         conf = json.loads(file)  # type: dict
 
@@ -222,10 +229,16 @@ class BaseConfig(object):
     def __save__(self):
         """Save the config to __config_path__ in a json format."""
 
-        jsonstr = json.dumps(self.__get_json_dict__(), indent=4, sort_keys=True)
+        if self.__xor_key__:
+            jsonstr = json.dumps(self.__get_json_dict__()).encode()
+            jsonstr = self.__crypt__(jsonstr)
+        else:
+            jsonstr = json.dumps(self.__get_json_dict__(), indent=4, sort_keys=True)
 
         logging.info('saving %d chars at %s', len(jsonstr), self.__config_path__)
-        with open(self.__config_path__, 'w', encoding='utf-8') as f:
+
+        mode = 'wb' if self.__xor_key__ else 'w'
+        with open(self.__config_path__, mode) as f:
             f.write(jsonstr)
 
     def __get_json_dict__(self):
@@ -245,6 +258,15 @@ class BaseConfig(object):
         json_dict["__version__"] = self.__version__
 
         return json_dict
+
+    def __crypt__(self, byte_text):
+        if self.__xor_key__:
+            key = self.__xor_key__[:2] + b'...' + self.__xor_key__[-2:]
+            logging.debug("Encryption of the config with the key %s", key)
+            byte_text = ''.join(chr(c ^ k) for c, k in zip(byte_text, cycle(self.__xor_key__))).encode()
+        return byte_text
+
+    __decrypt__ = __crypt__
 
     # ✓
     def __len__(self):

@@ -192,3 +192,19 @@ At the end of your config's file, you can add:
         configlib.update_config(Config)
 
 So running `python config.py [OPTIONS]` will trigger the command line interface described in the first part.
+
+#### Saving configs in non-editable format
+
+Often, one wants to prevent his users from editing the configuration manually, 
+for instance in a multiplayer game where they could just give themselves a 999 damage weapon...
+Pyconfiglib let you crypt simply the configuration with `__xor_key__`. This performs a simple xor
+between the key and the config to save. It is enough to keep most people from manually editing the config,
+but wont stop the 1% of people that you do anything to edit this damn connfig. Anyway, there's nothing you 
+can do against them, except storing everything in your server. (and even there they could send the 
+right requests...)
+
+Anyway, if `__xor_key__` is set to anything else than `b''`, the default, the config will be xor-crypted
+with that given key. `__xor_key__` should be a byte string, and the bigger the better.
+
+You can override `__crypt__` and `__decrypt__` to use a different encryption algorithm. 
+They both take a single parameter, a byte string, and should return this byte string (en|de)crypted.
