@@ -57,7 +57,11 @@ Example:
         surname = 'Jo'
         age = 42
 
-**NOTE:** fields names can not both start and end with two underscores (`__`).
+**NOTE:** fields names can not start nor end with an underscore (`_`), 
+so we can have attributes not tracked by the config.
+
+**NOTE:** no field can be set to a callable object. 
+This is a deliberate choice to allow defining functions in the class' body.
 
 #### Types
 
@@ -132,7 +136,7 @@ And then in your `Config` class add:
         
         __age_type__ = PositiveIntegerType()
 
-**NOTE:** Don't forget to instanciate `ConfigType`.
+**NOTE:** Don't forget to instantiate `ConfigType`.
 
 #### Hints
 

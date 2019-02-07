@@ -79,12 +79,12 @@ TYPE_TO_CLICK_TYPE = {
 # ✓
 def is_config_field(attr: str):
     """Every string which doesn't start and end with '__' is considered to be a valid usable configuration field."""
-    return not (attr.startswith('__') and attr.endswith('__'))
+    return not (attr.startswith('_') or attr.endswith('_'))
 
 
 # ✓
 def prompt_update_all(config: 'Config'):
-    """Prompt each field of the configration to the user."""
+    """Prompt each field of the configuration to the user."""
 
     click.echo()
     click.echo('Welcome !')
@@ -113,7 +113,7 @@ def prompt_update_all(config: 'Config'):
         else:
             default = config[field]
 
-        # a too long hint is awfull
+        # a too long hint is awful
         if len(str(default)) > 14:
             default = str(default)[:10] + '...'
 
@@ -181,11 +181,11 @@ class BaseConfig(object):
     def __iter__(self):
         """Iterate over the fields, sorted."""
 
-        # the fields are all class atributes,
+        # the fields are all class attributes,
         # so they are accessible from everywhere
         keys = sorted(type(self).__dict__)
         for key in keys:
-            if is_config_field(key):
+            if is_config_field(key) and not callable(self[key]):
                 yield key
 
     def __contains__(self, item: str):
@@ -240,7 +240,7 @@ class BaseConfig(object):
 
     # ✓
     def __len__(self):
-        # we can't do len(list(self)) because list uses len when it can, causing recurtion of the death
+        # we can't do len(list(self)) because list uses len when it can, causing recursion of the death
         return sum(1 for _ in self)
 
     # ✓
@@ -251,6 +251,10 @@ class BaseConfig(object):
         :param field: needs to be an existing field
         :raise ValueError: when the value is not valid.
         """
+
+        if callable(value):
+            logging.warning('Cannot set a field to a callable object: trying to set %s to %s' % (field, value))
+            raise ValueError('Cannot set a field to a callable object: trying to set %s to %s' % (field, value))
 
         # if there is a dot in the name, we want to set an field of a subconfig
         if '.' in field:
@@ -265,7 +269,7 @@ class BaseConfig(object):
 
         if conftypes.is_valid(value, supposed_type):
             # everything is correct, we assign is directly
-            self.__setattr__(field, value)
+            object.__setattr__(self, field, value)
             logging.debug('valid')
 
 
@@ -274,7 +278,7 @@ class BaseConfig(object):
             logging.debug('try to convert the value through ConfigType')
             try:
                 value = supposed_type.load(value)
-                self.__setattr__(field, value)
+                object.__setattr__(self, field, value)
             except Exception:
                 logging.warning('fail loading %r of type %s but supposed %s', value, type(value), supposed_type)
                 raise ValueError('fail loading %r of type %s but supposed %s' % (value, type(value), supposed_type))
@@ -283,7 +287,7 @@ class BaseConfig(object):
             try:
                 logging.debug('try to convert the value throught click.ParamType')
                 value = TYPE_TO_CLICK_TYPE[supposed_type](value)
-                self.__setattr__(field, value)
+                object.__setattr__(self, field, value)
             except Exception:
                 logging.warning('fail loading %r of type %s but supposed %s', value, type(value), supposed_type)
                 raise ValueError('fail loading %s of type %s but supposed %s' % (value, type(value), supposed_type))
@@ -291,6 +295,8 @@ class BaseConfig(object):
             # it is just not good
             logging.warning('fail loading %r of type %s but supposed %s', value, type(value), supposed_type)
             raise ValueError('fail loading %s of type %s but supposed %s' % (value, type(value), supposed_type))
+
+    __setattr__ = __setitem__
 
     # ✓
     def __getitem__(self, item: str):
@@ -302,13 +308,12 @@ class BaseConfig(object):
 
     # ✓
     def __enter__(self):
-        """The context manager patern ensures that the config will be saved."""
+        """The context manager pattern ensures that the config will be saved."""
         return self
 
     # ✓
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.__save__()
-        # click.echo('\nSaved!')
 
     # ✓
     def __print_list__(self, prefix=''):
