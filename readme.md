@@ -2,7 +2,7 @@
 
 # configlib
 
-A bit desesperate by the lack of good and easy to use configuration libraries in python, 
+A bit desperate by the lack of good and easy to use configuration libraries in python, 
 I decided to write this one. The two main goals are:
 - Make it easy for the you to describe the data you use to configurate your project and be able 
 to save and load it in one line
@@ -150,7 +150,6 @@ Example:
 
         __age_hint__ = 'Your age in days'
 
-
 #### Printing
 
 You can pretty print the configuration with `__show__`. 
@@ -173,6 +172,17 @@ It is better to to specify absolute path relative to the current `__file__` like
     __config_path__ = os.path.join(os.path.dirname(__file__), '.config')
 
 Because the current directory may not be the one of your code, because a script can be called from everywhere.
+
+#### Version checking
+
+If you make breaking changes to the configuration so that loading the current saved config would crash 
+your program (a common example is when you have a list that needs to be of a specific size, and this
+size changed), you can automatically load the default config by setting the `__version__`.
+
+If the saved `__version__` and the `__version__` defined in your code do not match, 
+the config will be reset. 
+There is actually no support to "upgrade" the config instead, 
+but you can probably do it manually depending on the issue you're facing.
 
 #### Allow user interface
 

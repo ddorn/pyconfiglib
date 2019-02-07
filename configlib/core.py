@@ -143,6 +143,7 @@ class Singleton(type):
 class BaseConfig(object):
     # the path where the configuration is stored. The directory must exist
     __config_path__ = 'config.json'
+    __version__ = 1
 
     # ✓
     def __init__(self, strict=False):
@@ -210,6 +211,11 @@ class BaseConfig(object):
 
         conf = json.loads(file)  # type: dict
 
+        if conf.get("__version__", self.__version__) != self.__version__:
+            logging.info("Config version mismatch (saved: %s, current: %s). Restoring default config.",
+                         conf["__version__"], self.__version__)
+            conf = {}
+
         self.__update__(conf, strict)
 
     # ✓
@@ -235,6 +241,8 @@ class BaseConfig(object):
                     json_dict[attr] = supposed_type.save(self[attr])
                 else:
                     json_dict[attr] = self[attr]
+
+        json_dict["__version__"] = self.__version__
 
         return json_dict
 
@@ -377,7 +385,7 @@ class BaseConfig(object):
         Update all the fields with the key/values in the dict.
 
         When the type is wrong, a warning is printed and the field is not updated.
-        Return the succes of settin ALL fields of the dict.
+        Return the success of setting ALL fields of the dict.
         """
 
         one_field_is_with_a_bad_type = False
@@ -385,7 +393,7 @@ class BaseConfig(object):
         for field, value in dct.items():
 
             # we update only the fields in the conf so if someone added fields in the json,
-            # they won't interfere with the already defines attributes...
+            # they won't interfere with the already defined attributes...
             # For instance, we don't want to override __load__.
 
             if field not in self:

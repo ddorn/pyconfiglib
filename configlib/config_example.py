@@ -38,6 +38,7 @@ class Colors(configlib.SubConfig):
 
 class Config(configlib.Config):
     __config_path__ = 'assets/config.json'
+    __version__ = 1
 
     age = 3
 
