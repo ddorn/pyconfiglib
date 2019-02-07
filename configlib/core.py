@@ -172,6 +172,11 @@ class BaseConfig(object):
                     logging.debug('In %s the field %s has now type %s because the default is %r', cls, field,
                                   type(default), default)
 
+    def __str__(self):
+        return json.dumps(self.__get_json_dict__(), indent=4, sort_keys=True)
+
+    def __repr__(self):
+        return json.dumps(self.__get_json_dict__(), sort_keys=True)
     # ✓
     def __iter__(self):
         """Iterate over the fields, sorted."""

@@ -146,6 +146,15 @@ Example:
 
         __age_hint__ = 'Your age in days'
 
+
+#### Printing
+
+You can pretty print the configuration with `__show__`. 
+This will print the config and to add colors is pygments is installed.
+
+Alternatively, you can just `str()` the config to get a human readable string, 
+without any color. `repr()` returns the same string but in only one line.
+
 ### Sub-Configurations
 *Documentation needs to be done*
 
