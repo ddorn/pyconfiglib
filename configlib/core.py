@@ -470,7 +470,10 @@ class BaseConfig(object):
         return getattr(self, '__{field}_hint__'.format(field=field), field)
 
     def __reset__(self):
-        os.remove(self.__config_path__)
+        try:
+            os.remove(self.__config_path__)
+        except FileNotFoundError:
+            pass
         self.__class__()  # we create a new instance to load it from nowhere
         for field in self:
             if isinstance(self[field], SubConfig):
