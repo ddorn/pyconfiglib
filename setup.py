@@ -10,7 +10,7 @@ except FileNotFoundError:
 
 setup(
     name='pyconfiglib',
-    version='1.3.0',
+    version='1.3.1',
     packages=['configlib'],
     url='https://github.com/ddorn/pyconfiglib',
     license='MIT',

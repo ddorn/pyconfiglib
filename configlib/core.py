@@ -282,6 +282,11 @@ class BaseConfig(object):
         :raise ValueError: when the value is not valid.
         """
 
+        if not is_config_field(field):
+            # normal setter for normal fields
+            object.__setattr__(self, field, value)
+            return
+
         if callable(value):
             logging.warning('Cannot set a field to a callable object: trying to set %s to %s' % (field, value))
             raise ValueError('Cannot set a field to a callable object: trying to set %s to %s' % (field, value))
@@ -463,6 +468,13 @@ class BaseConfig(object):
     def __hint__(self, field):
         """Get the hint given by __field_hint__ or the field name if not defined."""
         return getattr(self, '__{field}_hint__'.format(field=field), field)
+
+    def __reset__(self):
+        os.remove(self.__config_path__)
+        self.__class__()  # we create a new instance to load it from nowhere
+        for field in self:
+            if isinstance(self[field], SubConfig):
+                self[field] = self[field].__class__()
 
 
 class Config(BaseConfig, metaclass=Singleton):
